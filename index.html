@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yard Parking Layout</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            overflow: hidden;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 20px;
+        }
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 6px;
+        }
+        .toolbar button, .toolbar select {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        .btn-add { background: #2563eb; color: white; }
+        .btn-add-multi { background: #0891b2; color: white; }
+        .btn-clear { background: #6b7280; color: white; }
+        .btn-save { background: #059669; color: white; }
+        .btn-load { background: #7c3aed; color: white; }
+        
+        .spot-type-select {
+            background: white;
+            border: 1px solid #ddd;
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .legend-box {
+            width: 20px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid #333;
+        }
+        .spot-mobil { background: #22c55e; }
+        .spot-motor { background: #3b82f6; }
+        .spot-bus { background: #f59e0b; }
+        .spot-disabled { background: #a855f7; }
+        .spot-empty { background: #e5e7eb; border-style: dashed; }
+
+        .main-area {
+            display: flex;
+            flex: 1;
+            gap: 12px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            border: 2px solid #374151;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            background: #f9fafb;
+        }
+
+        .canvas-viewport {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            position: relative;
+        }
+
+        .parking-canvas {
+            position: relative;
+            background: 
+                linear-gradient(90deg, #d1d5db 1px, transparent 1px),
+                linear-gradient(#d1d5db 1px, transparent 1px),
+                linear-gradient(90deg, #e5e7eb 1px, transparent 1px),
+                linear-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-color: #f9fafb;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        .parking-spot {
+            position: absolute;
+            border: 2px solid #374151;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            user-select: none;
+            font-size: 11px;
+            font-weight: 600;
+            transition: box-shadow 0.1s;
+        }
+        .parking-spot:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+        .parking-spot.selected {
+            outline: 3px solid #2563eb;
+            outline-offset: 2px;
+        }
+        .spot-mobil { background: #22c55e; color: white; }
+        .spot-empty { background: #f3f4f6; color: #6b7280; border-style: dashed; }
+        
+        .spot-label { font-size: 10px; opacity: 0.85; }
+        
+        .rotate-handle {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 2px solid #2563eb;
+            border-radius: 50%;
+            cursor: grab;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            z-index: 10;
+        }
+        .spot-selected .rotate-handle {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .panel-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .stat-item {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #374151;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .spot-list {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            border-radius: 4px;
+            max-height: 300px;
+        }
+        .spot-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .spot-item:hover { background: #f3f4f6; }
+        .spot-item.selected { background: #dbeafe; }
+        .spot-item .status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .mini-map {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 150px;
+            height: 100px;
+            background: rgba(255,255,255,0.95);
+            border: 2px solid #374151;
+            border-radius: 4px;
+            overflow: hidden;
+            z-index: 500;
+        }
+        .mini-map canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 6px 0;
+            min-width: 140px;
+            z-index: 1000;
+            display: none;
+        }
+        .context-menu.show { display: block; }
+        .context-menu-item {
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .context-menu-item:hover { background: #f3f4f6; }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #059669;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            font-size: 13px;
+            z-index: 2000;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 99px,
+                    #e5e7eb 99px,
+                    #e5e7eb 100px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 99px,
+                    #e5e7eb 99px,
+                    #e5e7eb 100px
+                );
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Yard Parking Layout Designer</h1>
+        
+        <div class="toolbar">
+            <select id="spotType" class="spot-type-select">
+                <option value="mobil">Mobil</option>
+            </select>
+            <button class="btn-add" onclick="addSpot()">+ 1 Spot</button>
+            <button class="btn-add-multi" onclick="showAddMultiDialog()">+ Multi Spot</button>
+            <button class="btn-clear" onclick="clearAll()">Clear</button>
+            <div style="flex:1"></div>
+            <button class="btn-save" onclick="saveLayout()">Save</button>
+            <button class="btn-load" onclick="loadLayout()">Load</button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-box spot-mobil"></div><span>Mobil</span></div>
+            <div class="legend-item"><div class="legend-box spot-empty"></div><span>Kosong</span></div>
+        </div>
+
+        <div class="main-area">
+            <div class="canvas-wrapper">
+                <div class="canvas-viewport" id="viewport">
+                    <div class="parking-canvas" id="canvas" style="width: 2000px; height: 1500px;">
+                        <div class="grid-lines"></div>
+                    </div>
+                </div>
+                <div class="mini-map" id="miniMapContainer">
+                    <canvas id="miniMap"></canvas>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="panel">
+                    <div class="panel-title">Statistik</div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="total">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="occupied">0</div>
+                            <div class="stat-label">Terisi</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="mobilCount">0</div>
+                            <div class="stat-label">Mobil</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="emptyCount">0</div>
+                            <div class="stat-label">Kosong</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+                    <div class="panel-title">Daftar Spot</div>
+                    <input type="text" id="searchSpot" placeholder="Cari..." style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;" oninput="filterSpots()">
+                    <div class="spot-list" id="spotList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="editSpotLabel()">Ubah Nama</div>
+        <div class="context-menu-item" onclick="toggleStatus()">Ubah Status</div>
+        <div class="context-menu-item" onclick="rotateSpot()">Rotate 90°</div>
+        <div class="context-menu-item" style="color: #ef4444;" onclick="deleteSpot()">Hapus</div>
+    </div>
+
+    <div class="toast" id="toast">Tersimpan!</div>
+
+    <script>
+        const SPOT_SIZES = {
+            mobil: { width: 40, height: 60 }
+        };
+
+        let spots = [];
+        let spotIdCounter = 1;
+        let selectedSpot = null;
+        let dragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let dragSpot = null;
+
+        const canvas = document.getElementById('canvas');
+        const viewport = document.getElementById('viewport');
+        const contextMenu = document.getElementById('contextMenu');
+
+        function resizeCanvas() {
+            let maxX = 1000, maxY = 800;
+            for (let spot of spots) {
+                maxX = Math.max(maxX, spot.x + spot.width + 200);
+                maxY = Math.max(maxY, spot.y + spot.height + 200);
+            }
+            canvas.style.width = maxX + 'px';
+            canvas.style.height = maxY + 'px';
+        }
+
+        function addSpot(x, y, type, label) {
+            const spotType = type || document.getElementById('spotType').value;
+            const size = SPOT_SIZES[spotType] || { width: 40, height: 60 };
+            
+            const spot = {
+                id: spotIdCounter++,
+                type: spotType,
+                x: x !== undefined ? x : 100 + (spots.length % 5) * (size.width + 10),
+                y: y !== undefined ? y : 100 + Math.floor(spots.length / 5) * (size.height + 20),
+                width: size.width,
+                height: size.height,
+                occupied: false,
+                rotation: 0,
+                label: label || (spotType.charAt(0).toUpperCase() + spotType.slice(1) + ' ' + spotIdCounter)
+            };
+            
+            spots.push(spot);
+            renderSpotElement(spot);
+            resizeCanvas();
+            updateStats();
+            updateMiniMap();
+        }
+
+        function addMultiSpots() {
+            const type = document.getElementById('spotType').value;
+            const size = SPOT_SIZES[type] || { width: 40, height: 60 };
+
+            const rowsInput = document.getElementById('multiRows');
+            const colsInput = document.getElementById('multiCols');
+            const startXInput = document.getElementById('multiStartX');
+            const startYInput = document.getElementById('multiStartY');
+            
+            const rows = rowsInput ? Math.max(1, parseInt(rowsInput.value) || 10) : 10;
+            const cols = colsInput ? Math.max(1, parseInt(colsInput.value) || 20) : 20;
+            const startX = startXInput ? Math.max(0, parseInt(startXInput.value) || 100) : 100;
+            const startY = startYInput ? Math.max(0, parseInt(startYInput.value) || 100) : 100;
+            const gapX = 20;
+            const gapY = 25;
+
+            const width = size.width;
+            const height = size.height;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    addSpot(
+                        startX + c * (width + gapX),
+                        startY + r * (height + gapY),
+                        type,
+                        type.charAt(0).toUpperCase() + type.slice(1) + '-' + (r * cols + c + 1)
+                    );
+                }
+            }
+            showToast(rows * cols + ' spot ditambahkan!');
+            updateSpotList();
+        }
+
+        function renderSpotElement(spot) {
+            let el = document.getElementById('spot-' + spot.id);
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'spot-' + spot.id;
+                canvas.appendChild(el);
+                
+                el.addEventListener('mousedown', (e) => startDrag(e, spot));
+                el.addEventListener('contextmenu', (e) => showContextMenu(e, spot));
+                el.addEventListener('click', (e) => { e.stopPropagation(); selectSpot(spot); });
+            }
+            
+            const isSelected = spot.id === selectedSpot?.id;
+            el.className = 'parking-spot ' + (spot.occupied ? 'spot-' + spot.type : 'spot-empty') + (isSelected ? ' spot-selected' : '');
+            el.style.left = spot.x + 'px';
+            el.style.top = spot.y + 'px';
+            el.style.width = spot.width + 'px';
+            el.style.height = spot.height + 'px';
+            el.style.transform = 'rotate(' + (spot.rotation || 0) + 'deg)';
+            el.innerHTML = `<div>${spot.label}</div><div class="spot-label">${spot.occupied ? 'TERISI' : 'KOSONG'}</div><div class="rotate-handle" onmousedown="event.stopPropagation(); startRotate(event, ${spot.id})">↻</div>`;
+        }
+
+        function selectSpot(spot) {
+            document.querySelectorAll('.parking-spot').forEach(el => el.classList.remove('selected'));
+            selectedSpot = spot;
+            const el = document.getElementById('spot-' + spot.id);
+            if (el) el.classList.add('selected');
+            
+            document.querySelectorAll('.spot-item').forEach(el => el.classList.remove('selected'));
+            const listItem = document.querySelector('.spot-item[data-id="' + spot.id + '"]');
+            if (listItem) listItem.classList.add('selected');
+
+            // center in viewport
+            const elRect = el.getBoundingClientRect();
+            const vpRect = viewport.getBoundingClientRect();
+            if (elRect.left < vpRect.left || elRect.right > vpRect.right ||
+                elRect.top < vpRect.top || elRect.bottom > vpRect.bottom) {
+                viewport.scrollTop = spot.y - vpRect.height / 2;
+                viewport.scrollLeft = spot.x - vpRect.width / 2;
+            }
+        }
+
+        function startDrag(e, spot) {
+            if (e.button !== 0) return;
+            if (rotatingSpot) return;
+            e.preventDefault();
+            e.stopPropagation();
+            dragging = true;
+            dragSpot = spot;
+            const el = document.getElementById('spot-' + spot.id);
+            const rect = el.getBoundingClientRect();
+            dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            selectSpot(spot);
+            document.body.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+        }
+
+        function onMouseMove(e) {
+            if (!dragging || !dragSpot) return;
+            e.preventDefault();
+            
+            const vpRect = viewport.getBoundingClientRect();
+            let x = e.clientX - vpRect.left + viewport.scrollLeft - dragOffset.x;
+            let y = e.clientY - vpRect.top + viewport.scrollTop - dragOffset.y;
+            
+            x = Math.round(x / 10) * 10;
+            y = Math.round(y / 10) * 10;
+            
+            dragSpot.x = x;
+            dragSpot.y = y;
+            
+            const el = document.getElementById('spot-' + dragSpot.id);
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+        }
+
+        function onMouseUp() {
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            if (dragging && dragSpot) {
+                clampSpotToCanvas(dragSpot);
+                const el = document.getElementById('spot-' + dragSpot.id);
+                if (el) {
+                    el.style.left = dragSpot.x + 'px';
+                    el.style.top = dragSpot.y + 'px';
+                }
+                resizeCanvas();
+                updateMiniMap();
+            }
+            dragging = false;
+            dragSpot = null;
+        }
+
+        function showContextMenu(e, spot) {
+            e.preventDefault();
+            selectSpot(spot);
+            contextMenu.style.left = e.clientX + 'px';
+            contextMenu.style.top = e.clientY + 'px';
+            contextMenu.classList.add('show');
+        }
+
+        function hideContextMenu() {
+            contextMenu.classList.remove('show');
+        }
+
+        function editSpotLabel() {
+            if (!selectedSpot) return;
+            const newLabel = prompt('Nama spot:', selectedSpot.label);
+            if (newLabel !== null && newLabel.trim()) {
+                selectedSpot.label = newLabel.trim();
+                renderSpotElement(selectedSpot);
+            }
+            hideContextMenu();
+        }
+
+        function toggleStatus() {
+            if (!selectedSpot) return;
+            selectedSpot.occupied = !selectedSpot.occupied;
+            renderSpotElement(selectedSpot);
+            updateStats();
+            hideContextMenu();
+        }
+
+        function adjustRotationOffset(spot, fromRotation, toRotation) {
+            const before = getRotatedDimensions({ width: spot.width, height: spot.height, rotation: fromRotation });
+            const after = getRotatedDimensions({ width: spot.width, height: spot.height, rotation: toRotation });
+            spot.x += (before.w - after.w) / 2;
+            spot.y += (before.h - after.h) / 2;
+        }
+
+        function rotateSpot() {
+            if (!selectedSpot) return;
+            const fromRotation = selectedSpot.rotation || 0;
+            const toRotation = (fromRotation + 90) % 360;
+            adjustRotationOffset(selectedSpot, fromRotation, toRotation);
+            selectedSpot.rotation = toRotation;
+            clampSpotToCanvas(selectedSpot);
+            renderSpotElement(selectedSpot);
+            resizeCanvas();
+            updateMiniMap();
+            hideContextMenu();
+        }
+
+        function startRotate(e, spotId) {
+            e.preventDefault();
+            e.stopPropagation();
+            rotatingSpot = spots.find(s => s.id === spotId);
+            if (!rotatingSpot) return;
+            rotateStartRotation = rotatingSpot.rotation || 0;
+            const spotEl = document.getElementById('spot-' + spotId);
+            const rect = spotEl.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            rotateStartAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
+            document.body.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+        }
+
+        function handleRotate(e) {
+            if (!rotatingSpot) return;
+            const spotEl = document.getElementById('spot-' + rotatingSpot.id);
+            const rect = spotEl.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const currentAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
+            const delta = currentAngle - rotateStartAngle;
+            let newRotation = ((rotateStartRotation + delta) % 360 + 360) % 360;
+            newRotation = Math.round(newRotation / 15) * 15;
+            rotatingSpot.rotation = newRotation;
+            spotEl.style.transform = 'rotate(' + newRotation + 'deg)';
+        }
+
+        function getRotatedDimensions(spot) {
+            const r = ((spot.rotation || 0) % 180 + 180) % 180;
+            if (r === 90) {
+                return { w: spot.height, h: spot.width };
+            }
+            return { w: spot.width, h: spot.height };
+        }
+
+        function getRotatedBounds(spot) {
+            var cx = spot.x + spot.width / 2;
+            var cy = spot.y + spot.height / 2;
+            var r = ((spot.rotation || 0) % 360 + 360) % 360 * Math.PI / 180;
+            var cos = Math.cos(r);
+            var sin = Math.sin(r);
+            
+            var w = spot.width;
+            var h = spot.height;
+            
+            // Use rotation matrix around center
+            // x' = cx + (x-cx)*cos - (y-cy)*sin
+            // y' = cy + (x-cx)*sin + (y-cy)*cos
+            
+            var p1 = rotatePoint(spot.x, spot.y, cx, cy, cos, sin);
+            var p2 = rotatePoint(spot.x + w, spot.y, cx, cy, cos, sin);
+            var p3 = rotatePoint(spot.x, spot.y + h, cx, cy, cos, sin);
+            var p4 = rotatePoint(spot.x + w, spot.y + h, cx, cy, cos, sin);
+            
+            var minL = Math.min(p1.x, p2.x, p3.x, p4.x);
+            var maxL = Math.max(p1.x, p2.x, p3.x, p4.x);
+            var minT = Math.min(p1.y, p2.y, p3.y, p4.y);
+            var maxT = Math.max(p1.y, p2.y, p3.y, p4.y);
+            
+            return { left: minL, top: minT, right: maxL, bottom: maxT };
+        }
+
+        function rotatePoint(px, py, cx, cy, cos, sin) {
+            var dx = px - cx;
+            var dy = py - cy;
+            return {
+                x: cx + dx * cos - dy * sin,
+                y: cy + dx * sin + dy * cos
+            };
+        }
+
+        function clampSpotToCanvas(spot) {
+            if (!spot) return;
+            const canvasW = parseInt(canvas.style.width) || canvas.clientWidth || 0;
+            const canvasH = parseInt(canvas.style.height) || canvas.clientHeight || 0;
+            if (canvasW <= 0 || canvasH <= 0) return;
+
+            let bounds = getRotatedBounds(spot);
+            const dxMin = -bounds.left;
+            const dxMax = canvasW - bounds.right;
+            let dx = 0;
+            if (dxMin > dxMax) {
+                dx = dxMin;
+            } else if (dxMin > 0) {
+                dx = dxMin;
+            } else if (dxMax < 0) {
+                dx = dxMax;
+            }
+            spot.x += dx;
+
+            bounds = getRotatedBounds(spot);
+            const dyMin = -bounds.top;
+            const dyMax = canvasH - bounds.bottom;
+            let dy = 0;
+            if (dyMin > dyMax) {
+                dy = dyMin;
+            } else if (dyMin > 0) {
+                dy = dyMin;
+            } else if (dyMax < 0) {
+                dy = dyMax;
+            }
+            spot.y += dy;
+        }
+
+        function endRotate() {
+            if (rotatingSpot) {
+                const from = rotatingSpot.rotation || 0;
+                const to = Math.round(from / 15) * 15;
+                adjustRotationOffset(rotatingSpot, from, to);
+                rotatingSpot.rotation = ((to % 360) + 360) % 360;
+                clampSpotToCanvas(rotatingSpot);
+
+                renderSpotElement(rotatingSpot);
+                resizeCanvas();
+                updateMiniMap();
+            }
+            rotatingSpot = null;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+
+        function deleteSpot() {
+            if (!selectedSpot) return;
+            const el = document.getElementById('spot-' + selectedSpot.id);
+            if (el) el.remove();
+            spots = spots.filter(s => s.id !== selectedSpot.id);
+            selectedSpot = null;
+            updateStats();
+            updateSpotList();
+            updateMiniMap();
+            hideContextMenu();
+        }
+
+        function clearAll() {
+            if (spots.length === 0) return;
+            if (!confirm('Hapus semua spot?')) return;
+            spots = [];
+            spotIdCounter = 1;
+            canvas.querySelectorAll('.parking-spot').forEach(el => el.remove());
+            resizeCanvas();
+            updateStats();
+            updateSpotList();
+            updateMiniMap();
+        }
+
+        function updateStats() {
+            let occupied = 0;
+            for (let spot of spots) {
+                if (spot.occupied) occupied++;
+            }
+            
+            document.getElementById('total').textContent = spots.length;
+            document.getElementById('occupied').textContent = occupied;
+            document.getElementById('mobilCount').textContent = spots.length;
+            document.getElementById('emptyCount').textContent = spots.length - occupied;
+        }
+
+        function updateSpotList() {
+            const search = document.getElementById('searchSpot').value.toLowerCase();
+            const list = document.getElementById('spotList');
+            list.innerHTML = '';
+            
+            const filtered = spots.filter(s => s.label.toLowerCase().includes(search));
+            for (let spot of filtered.slice(0, 500)) {
+                const el = document.createElement('div');
+                el.className = 'spot-item';
+                el.dataset.id = spot.id;
+                el.onclick = () => selectSpot(spot);
+                el.innerHTML = `
+                    <span>${spot.label}</span>
+                    <div class="status" style="background: ${spot.occupied ? '#22c55e' : '#e5e7eb'}"></div>
+                `;
+                list.appendChild(el);
+            }
+            
+            if (filtered.length > 500) {
+                list.innerHTML += `<div style="padding:8px; color:#6b7280; font-size:11px;">Menampilkan 500 dari ${filtered.length}</div>`;
+            }
+        }
+
+        function filterSpots() {
+            updateSpotList();
+        }
+
+        function updateMiniMap() {
+            const canvas = document.getElementById('miniMap');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = 150;
+            const h = canvas.height = 100;
+            
+            ctx.fillStyle = '#f3f4f6';
+            ctx.fillRect(0, 0, w, h);
+            
+            const boundW = parseInt(document.getElementById('canvas').style.width);
+            const boundH = parseInt(document.getElementById('canvas').style.height);
+            const scale = Math.min(w / boundW, h / boundH);
+            const offsetX = (w - boundW * scale) / 2;
+            const offsetY = (h - boundH * scale) / 2;
+            
+            const colors = { mobil: '#22c55e' };
+            
+            for (let spot of spots) {
+                ctx.fillStyle = spot.occupied ? '#22c55e' : '#e5e7eb';
+                ctx.fillRect(
+                    offsetX + spot.x * scale,
+                    offsetY + spot.y * scale,
+                    spot.width * scale,
+                    spot.height * scale
+                );
+            }
+            
+            // viewport indicator
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(
+                offsetX + viewport.scrollLeft * scale,
+                offsetY + viewport.scrollTop * scale,
+                viewport.clientWidth * scale,
+                viewport.clientHeight * scale
+            );
+        }
+
+        let miniMapDragging = false;
+        let rotatingSpot = null;
+        let rotateStartAngle = 0;
+        let rotateStartRotation = 0;
+
+        function scrollFromMiniMap(e) {
+            const miniMap = document.getElementById('miniMapContainer');
+            const rect = miniMap.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            const boundW = parseInt(document.getElementById('canvas').style.width);
+            const boundH = parseInt(document.getElementById('canvas').style.height);
+            const scale = Math.min(150 / boundW, 100 / boundH);
+            const offsetX = (150 - boundW * scale) / 2;
+            const offsetY = (100 - boundH * scale) / 2;
+            
+            const targetX = (clickX - offsetX) / scale;
+            const targetY = (clickY - offsetY) / scale;
+            
+            viewport.scrollTo(
+                Math.max(0, targetX - viewport.clientWidth / 2),
+                Math.max(0, targetY - viewport.clientHeight / 2)
+            );
+        }
+
+        function onMiniMapMouseDown(e) {
+            miniMapDragging = true;
+            scrollFromMiniMap(e);
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function onMiniMapMouseMove(e) {
+            if (!miniMapDragging) return;
+            scrollFromMiniMap(e);
+        }
+
+        function onMiniMapMouseUp() {
+            miniMapDragging = false;
+            document.body.style.cursor = '';
+        }
+
+        document.getElementById('miniMapContainer').addEventListener('mousedown', onMiniMapMouseDown);
+        document.addEventListener('mousemove', (e) => { onMiniMapMouseMove(e); handleRotate(e); });
+        document.addEventListener('mouseup', (e) => { onMiniMapMouseUp(); endRotate(); });
+
+        function saveLayout() {
+            const data = { spotIdCounter: spotIdCounter, spots: spots };
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'parking-layout.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Layout disimpan!');
+        }
+
+        function loadLayout() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const data = JSON.parse(evt.target.result);
+                        spotIdCounter = data.spotIdCounter || 1;
+                        spots = data.spots || [];
+                        
+                        canvas.querySelectorAll('.parking-spot').forEach(el => el.remove());
+                        for (let spot of spots) {
+                            renderSpotElement(spot);
+                        }
+                        resizeCanvas();
+                        updateStats();
+                        updateSpotList();
+                        updateMiniMap();
+                        showToast('Layout dimuat! (' + spots.length + ' spot)');
+                    } catch (err) {
+                        alert('Gagal memuat: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function showAddMultiDialog() {
+            const html = `
+                <div id="multiDialog" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1500;">
+                    <div style="background:white; padding:20px; border-radius:8px; width:300px;">
+                        <h3 style="margin-bottom:12px;">Tambah Multi Spot</h3>
+                        <label style="display:block; margin-bottom:8px; font-size:13px;">
+                            Baris: <input type="number" id="multiRows" value="10" min="1" max="100" style="width:60px; padding:4px;">
+                        </label>
+                        <label style="display:block; margin-bottom:8px; font-size:13px;">
+                            Kolom: <input type="number" id="multiCols" value="20" min="1" max="100" style="width:60px; padding:4px;">
+                        </label>
+                        <label style="display:block; margin-bottom:8px; font-size:13px;">
+                            Posisi X: <input type="number" id="multiStartX" value="100" style="width:60px; padding:4px;">
+                        </label>
+                        <label style="display:block; margin-bottom:8px; font-size:13px;">
+                            Posisi Y: <input type="number" id="multiStartY" value="100" style="width:60px; padding:4px;">
+                        </label>
+                        <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end;">
+                            <button onclick="document.getElementById('multiDialog').remove()" style="padding:6px 12px; border:1px solid #ddd; background:white; border-radius:4px;">Batal</button>
+                            <button onclick="addMultiSpots(); document.getElementById('multiDialog').remove()" style="padding:6px 12px; border:none; background:#2563eb; color:white; border-radius:4px;">Tambah</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        document.addEventListener('mousemove', onMouseMove, { passive: false });
+        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.context-menu')) hideContextMenu();
+            if (!e.target.closest('.parking-spot')) {
+                document.querySelectorAll('.parking-spot').forEach(el => el.classList.remove('selected'));
+                selectedSpot = null;
+            }
+        });
+
+        viewport.onscroll = updateMiniMap;
+        window.onresize = updateMiniMap;
+
+        // Initialize
+        resizeCanvas();
+        updateMiniMap();
+    </script>
+</body>
+</html>
