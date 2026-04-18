@@ -391,7 +391,7 @@
 
     <script>
         const SPOT_SIZES = {
-            mobil: { width: 40, height: 60 }
+            mobil: { width: 60, height: 80 }
         };
 
         let spots = [];
@@ -417,7 +417,7 @@
 
         function addSpot(x, y, type, label) {
             const spotType = type || document.getElementById('spotType').value;
-            const size = SPOT_SIZES[spotType] || { width: 40, height: 60 };
+            const size = SPOT_SIZES[spotType] || { width: 60, height: 80 };
             
             const spot = {
                 id: spotIdCounter++,
@@ -440,7 +440,7 @@
 
         function addMultiSpots() {
             const type = document.getElementById('spotType').value;
-            const size = SPOT_SIZES[type] || { width: 40, height: 60 };
+            const size = SPOT_SIZES[type] || { width: 60, height: 80 };
 
             const rowsInput = document.getElementById('multiRows');
             const colsInput = document.getElementById('multiCols');
@@ -937,13 +937,13 @@
                             Baris: <input type="number" id="multiRows" value="10" min="1" max="100" style="width:60px; padding:4px;">
                         </label>
                         <label style="display:block; margin-bottom:8px; font-size:13px;">
-                            Kolom: <input type="number" id="multiCols" value="20" min="1" max="100" style="width:60px; padding:4px;">
+                            Kolom: <input type="number" id="multiCols" value="10" min="1" max="100" style="width:60px; padding:4px;">
                         </label>
                         <label style="display:block; margin-bottom:8px; font-size:13px;">
-                            Posisi X: <input type="number" id="multiStartX" value="100" style="width:60px; padding:4px;">
+                            Posisi X: <input type="number" id="multiStartX" value="10" style="width:60px; padding:4px;">
                         </label>
                         <label style="display:block; margin-bottom:8px; font-size:13px;">
-                            Posisi Y: <input type="number" id="multiStartY" value="100" style="width:60px; padding:4px;">
+                            Posisi Y: <input type="number" id="multiStartY" value="10" style="width:60px; padding:4px;">
                         </label>
                         <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end;">
                             <button onclick="document.getElementById('multiDialog').remove()" style="padding:6px 12px; border:1px solid #ddd; background:white; border-radius:4px;">Batal</button>
