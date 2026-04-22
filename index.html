@@ -151,6 +151,7 @@
         .legend-available { background: #22c55e; }
         .legend-reserved { background: #f59e0b; }
         .legend-occupied { background: #ef4444; }
+        .legend-disabled { background: #94a3b8; }
         .main-area {
             display: flex;
             flex: 1;
@@ -224,6 +225,7 @@
         .slot-available { background: #22c55e; }
         .slot-reserved { background: #f59e0b; color: #111827; }
         .slot-occupied { background: #ef4444; }
+        .slot-disabled { background: #94a3b8; color: #1f2937; border-style: dashed; }
 
         .slot-line-row,
         .slot-status {
@@ -372,6 +374,10 @@
 
         .status-pill.reserved {
             color: #111827;
+        }
+
+        .status-pill.disabled {
+            color: #1f2937;
         }
 
         .property-grid {
@@ -607,9 +613,10 @@
         </div>
 
         <div class="legend">
-            <div class="legend-item"><div class="legend-box legend-available"></div><span>Tersedia</span></div>
-            <div class="legend-item"><div class="legend-box legend-reserved"></div><span>Terpesan</span></div>
-            <div class="legend-item"><div class="legend-box legend-occupied"></div><span>Terisi</span></div>
+            <div class="legend-item"><div class="legend-box legend-available"></div><span>Available</span></div>
+            <div class="legend-item"><div class="legend-box legend-reserved"></div><span>Reserved</span></div>
+            <div class="legend-item"><div class="legend-box legend-occupied"></div><span>Occupied</span></div>
+            <div class="legend-item"><div class="legend-box legend-disabled"></div><span>Disabled</span></div>
         </div>
 
         <div class="main-area">
@@ -624,7 +631,7 @@
 
             <div class="sidebar">
                 <div class="panel">
-                    <div class="panel-title">Statistik</div>
+                    <div class="panel-title">Statistics</div>
                     <div class="stats-grid">
                         <div class="stat-item">
                             <div class="stat-value" id="totalSlots">0</div>
@@ -632,36 +639,41 @@
                         </div>
                         <div class="stat-item">
                             <div class="stat-value" id="availableSlots">0</div>
-                            <div class="stat-label">Tersedia</div>
+                            <div class="stat-label">Available</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-value" id="reservedSlots">0</div>
-                            <div class="stat-label">Terpesan</div>
+                            <div class="stat-label">Reserved</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-value" id="occupiedSlots">0</div>
-                            <div class="stat-label">Terisi</div>
+                            <div class="stat-label">Occupied</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="disabledSlots">0</div>
+                            <div class="stat-label">Disabled</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="panel" style="display:flex; flex-direction:column; min-height:0;">
-                    <div class="panel-title">Daftar Slot</div>
+                    <div class="panel-title">Slot List</div>
                     <div class="filters">
-                        <input type="text" id="searchSlot" placeholder="Cari label, line, row..." oninput="updateSlotList()">
+                        <input type="text" id="searchSlot" placeholder="Search label, line, row..." oninput="updateSlotList()">
                         <select id="filterStatus" onchange="updateSlotList()">
-                            <option value="all">Semua status</option>
-                            <option value="available">Tersedia</option>
-                            <option value="reserved">Terpesan</option>
-                            <option value="occupied">Terisi</option>
+                            <option value="all">All statuses</option>
+                            <option value="available">Available</option>
+                            <option value="reserved">Reserved</option>
+                            <option value="occupied">Occupied</option>
+                            <option value="disabled">Disabled</option>
                         </select>
                     </div>
                     <div class="slot-list" id="slotList"></div>
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">Detail Slot</div>
-                    <div id="emptyProperty" class="empty-property">Pilih slot untuk mengubah line, row, status, ukuran, posisi, dan rotation.</div>
+                    <div class="panel-title">Slot Details</div>
+                    <div id="emptyProperty" class="empty-property">Select a slot to edit line, row, status, size, position, and rotation.</div>
                     <div id="propertyPanel" class="property-grid" style="display:none;">
                         <div class="property-field full">
                             <label for="propLabel">Label</label>
@@ -670,9 +682,10 @@
                         <div class="property-field">
                             <label for="propStatus">Status</label>
                             <select id="propStatus" onchange="setSlotStatus(this.value, false)">
-                                <option value="available">Tersedia</option>
-                                <option value="reserved">Terpesan</option>
-                                <option value="occupied">Terisi</option>
+                                <option value="available">Available</option>
+                                <option value="reserved">Reserved</option>
+                                <option value="occupied">Occupied</option>
+                                <option value="disabled">Disabled</option>
                             </select>
                         </div>
                         <div class="property-field">
@@ -710,28 +723,30 @@
     </div>
 
     <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item" onclick="editSlotIdentity()">Ubah Line/Row</div>
-        <div class="context-menu-item" onclick="editSlotLabel()">Ubah Nama</div>
+        <div class="context-menu-item" onclick="editSlotIdentity()">Edit Line/Row</div>
+        <div class="context-menu-item" onclick="editSlotLabel()">Edit Name</div>
         <div class="context-menu-divider"></div>
-        <div class="context-menu-item" onclick="setSlotStatus('available')">Set Tersedia</div>
-        <div class="context-menu-item" onclick="setSlotStatus('reserved')">Set Terpesan</div>
-        <div class="context-menu-item" onclick="setSlotStatus('occupied')">Set Terisi</div>
+        <div class="context-menu-item" onclick="setSlotStatus('available')">Set Available</div>
+        <div class="context-menu-item" onclick="setSlotStatus('reserved')">Set Reserved</div>
+        <div class="context-menu-item" onclick="setSlotStatus('occupied')">Set Occupied</div>
+        <div class="context-menu-item" onclick="setSlotStatus('disabled')">Set Disabled</div>
         <div class="context-menu-divider"></div>
         <div class="context-menu-item" onclick="rotateSelectedSlot(90)">Rotate 90 deg</div>
         <div class="context-menu-item" onclick="rotateSelectedSlot(-90)">Rotate -90 deg</div>
         <div class="context-menu-item" onclick="resetSelectedRotation()">Reset Rotation</div>
         <div class="context-menu-divider"></div>
-        <div class="context-menu-item danger" onclick="deleteSelectedSlot()">Hapus</div>
+        <div class="context-menu-item danger" onclick="deleteSelectedSlot()">Delete</div>
     </div>
 
-    <div class="toast" id="toast">Tersimpan!</div>
+    <div class="toast" id="toast">Saved!</div>
 
     <script>
         const SLOT_SIZE = { width: 60, height: 80 };
         const SLOT_STATUSES = {
-            available: { label: 'TERSEDIA', color: '#22c55e', pillClass: '' },
-            reserved: { label: 'TERPESAN', color: '#f59e0b', pillClass: 'reserved' },
-            occupied: { label: 'TERISI', color: '#ef4444', pillClass: '' }
+            available: { label: 'AVAILABLE', color: '#22c55e', pillClass: '' },
+            reserved: { label: 'RESERVED', color: '#f59e0b', pillClass: 'reserved' },
+            occupied: { label: 'OCCUPIED', color: '#ef4444', pillClass: '' },
+            disabled: { label: 'DISABLED', color: '#94a3b8', pillClass: 'disabled' }
         };
 
         let yards = [];
@@ -768,13 +783,13 @@
             yards.push(yard);
             activeYardId = yard.id;
             renderAll();
-            showToast(yard.name + ' dibuat');
+            showToast(yard.name + ' created');
             return yard;
         }
 
         function editYard() {
             const yard = getActiveYard();
-            const name = prompt('Nama yard:', yard.name);
+            const name = prompt('Yard name:', yard.name);
             if (name === null) return;
             yard.name = name.trim() || yard.name;
             renderAll();
@@ -1040,7 +1055,7 @@
 
         function editSlotLabel() {
             if (!selectedSlot) return;
-            const nextLabel = prompt('Nama slot:', selectedSlot.label);
+            const nextLabel = prompt('Slot name:', selectedSlot.label);
             if (nextLabel !== null && nextLabel.trim()) {
                 selectedSlot.label = nextLabel.trim();
                 renderSlotElement(selectedSlot);
@@ -1086,7 +1101,7 @@
 
         function clearAll() {
             if (!slots.length && yards.length <= 1) return;
-            if (!confirm('Hapus semua yard dan slot?')) return;
+            if (!confirm('Clear all slots?')) return;
             yards = [];
             slots = [];
             yardIdCounter = 1;
@@ -1095,14 +1110,15 @@
             selectedSlot = null;
             createYard('Main Yard', 40, 40, 1000, 620);
             renderAll();
-            showToast('Layout dikosongkan');
+            showToast('Layout cleared');
         }
 
         function updateStats() {
             const counts = {
                 available: 0,
                 reserved: 0,
-                occupied: 0
+                occupied: 0,
+                disabled: 0
             };
             for (const slot of slots) {
                 normalizeSlot(slot);
@@ -1112,6 +1128,7 @@
             document.getElementById('availableSlots').textContent = counts.available;
             document.getElementById('reservedSlots').textContent = counts.reserved;
             document.getElementById('occupiedSlots').textContent = counts.occupied;
+            document.getElementById('disabledSlots').textContent = counts.disabled;
         }
 
         function updateSlotList() {
@@ -1146,9 +1163,9 @@
             }
 
             if (!filtered.length) {
-                list.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px;">Tidak ada slot.</div>';
+                list.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px;">No slots found.</div>';
             } else if (filtered.length > 500) {
-                list.insertAdjacentHTML('beforeend', '<div style="padding:8px; color:#64748b; font-size:11px;">Menampilkan 500 dari ' + filtered.length + '</div>');
+                list.insertAdjacentHTML('beforeend', '<div style="padding:8px; color:#64748b; font-size:11px;">Showing 500 of ' + filtered.length + '</div>');
             }
         }
 
@@ -1208,21 +1225,21 @@
             const html = [
                 '<div class="dialog-backdrop" id="multiDialog">',
                 '<div class="dialog">',
-                '<h3>Tambah Multi Slot</h3>',
+                '<h3>Add Multiple Slots</h3>',
                 '<div class="dialog-grid">',
                 '<div class="dialog-field"><label>Prefix Line</label><input id="multiLinePrefix" type="text" value="A"></div>',
-                '<div class="dialog-field"><label>Jumlah Line</label><input id="multiLineCount" type="number" min="1" max="50" value="3"></div>',
+                '<div class="dialog-field"><label>Line Count</label><input id="multiLineCount" type="number" min="1" max="50" value="3"></div>',
                 '<div class="dialog-field"><label>Row per Line</label><input id="multiRowCount" type="number" min="1" max="100" value="10"></div>',
                 '<div class="dialog-field"><label>Start Row</label><input id="multiStartRow" type="number" min="1" value="1"></div>',
-                '<div class="dialog-field"><label>Posisi X</label><input id="multiStartX" type="number" value="' + (yard.x + 24) + '"></div>',
-                '<div class="dialog-field"><label>Posisi Y</label><input id="multiStartY" type="number" value="' + (yard.y + 48) + '"></div>',
+                '<div class="dialog-field"><label>Position X</label><input id="multiStartX" type="number" value="' + (yard.x + 24) + '"></div>',
+                '<div class="dialog-field"><label>Position Y</label><input id="multiStartY" type="number" value="' + (yard.y + 48) + '"></div>',
                 '<div class="dialog-field"><label>Gap X</label><input id="multiGapX" type="number" min="0" value="20"></div>',
                 '<div class="dialog-field"><label>Gap Y</label><input id="multiGapY" type="number" min="0" value="25"></div>',
-                '<div class="dialog-field full"><label>Status Default</label><select id="multiStatus"><option value="available">Tersedia</option><option value="reserved">Terpesan</option><option value="occupied">Terisi</option></select></div>',
+                '<div class="dialog-field full"><label>Default Status</label><select id="multiStatus"><option value="available">Available</option><option value="reserved">Reserved</option><option value="occupied">Occupied</option><option value="disabled">Disabled</option></select></div>',
                 '</div>',
                 '<div class="dialog-actions">',
-                '<button class="dialog-cancel" onclick="closeDialog(\'multiDialog\')">Batal</button>',
-                '<button class="dialog-primary" onclick="addMultiSlots(); closeDialog(\'multiDialog\')">Tambah</button>',
+                '<button class="dialog-cancel" onclick="closeDialog(\'multiDialog\')">Cancel</button>',
+                '<button class="dialog-primary" onclick="addMultiSlots(); closeDialog(\'multiDialog\')">Add</button>',
                 '</div>',
                 '</div>',
                 '</div>'
@@ -1262,7 +1279,7 @@
 
             activeYardId = yardId;
             renderAll();
-            showToast((lineCount * rowCount) + ' slot ditambahkan');
+            showToast((lineCount * rowCount) + ' slots added');
         }
 
         function closeDialog(id) {
@@ -1291,7 +1308,7 @@
             link.download = 'yard-layout.json';
             link.click();
             URL.revokeObjectURL(url);
-            showToast('Layout disimpan');
+            showToast('Layout saved');
         }
 
         function loadLayout() {
@@ -1306,9 +1323,9 @@
                     try {
                         const data = JSON.parse(evt.target.result);
                         loadData(data);
-                        showToast('Layout dimuat (' + slots.length + ' slot)');
+                        showToast('Layout loaded (' + slots.length + ' slots)');
                     } catch (error) {
-                        alert('Gagal memuat layout: ' + error.message);
+                        alert('Failed to load layout: ' + error.message);
                     }
                 };
                 reader.readAsText(file);
@@ -1364,6 +1381,7 @@
             const w = miniCanvas.width = 160;
             const h = miniCanvas.height = 108;
             const metrics = getMiniMapMetrics(w, h);
+            const scroll = getViewportScrollBounds();
 
             ctx.clearRect(0, 0, w, h);
             ctx.fillStyle = '#f8fafc';
@@ -1376,10 +1394,10 @@
             ctx.strokeStyle = '#111827';
             ctx.lineWidth = 1;
             ctx.strokeRect(
-                metrics.offsetX + viewport.scrollLeft * metrics.scale,
-                metrics.offsetY + viewport.scrollTop * metrics.scale,
-                viewport.clientWidth * metrics.scale,
-                viewport.clientHeight * metrics.scale
+                metrics.offsetX + clamp(viewport.scrollLeft, 0, scroll.maxX) * metrics.scale,
+                metrics.offsetY + clamp(viewport.scrollTop, 0, scroll.maxY) * metrics.scale,
+                Math.min(viewport.clientWidth, metrics.boundW) * metrics.scale,
+                Math.min(viewport.clientHeight, metrics.boundH) * metrics.scale
             );
         }
 
@@ -1413,12 +1431,32 @@
             const clickX = event.clientX - rect.left;
             const clickY = event.clientY - rect.top;
             const metrics = getMiniMapMetrics(rect.width || 160, rect.height || 108);
-            const targetX = (clickX - metrics.offsetX) / metrics.scale;
-            const targetY = (clickY - metrics.offsetY) / metrics.scale;
+            const scroll = getViewportScrollBounds();
+            const mapContentW = metrics.boundW * metrics.scale;
+            const mapContentH = metrics.boundH * metrics.scale;
+            const viewportMapW = Math.min(viewport.clientWidth, metrics.boundW) * metrics.scale;
+            const viewportMapH = Math.min(viewport.clientHeight, metrics.boundH) * metrics.scale;
+            const draggableW = Math.max(1, mapContentW - viewportMapW);
+            const draggableH = Math.max(1, mapContentH - viewportMapH);
+            const desiredMapX = clickX - metrics.offsetX - viewportMapW / 2;
+            const desiredMapY = clickY - metrics.offsetY - viewportMapH / 2;
             viewport.scrollTo(
-                Math.max(0, targetX - viewport.clientWidth / 2),
-                Math.max(0, targetY - viewport.clientHeight / 2)
+                clamp(desiredMapX / draggableW, 0, 1) * scroll.maxX,
+                clamp(desiredMapY / draggableH, 0, 1) * scroll.maxY
             );
+        }
+
+        function getViewportScrollBounds() {
+            const canvasW = parseInt(canvas.style.width, 10) || canvas.clientWidth || 0;
+            const canvasH = parseInt(canvas.style.height, 10) || canvas.clientHeight || 0;
+            return {
+                maxX: Math.max(0, canvasW - viewport.clientWidth),
+                maxY: Math.max(0, canvasH - viewport.clientHeight)
+            };
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
         }
 
         function onMiniMapMouseDown(event) {
@@ -1604,9 +1642,6 @@
         window.addEventListener('resize', updateMiniMap);
 
         createYard('Main Yard', 40, 40, 1000, 620);
-        addSlot(80, 100, { line: 'A', row: 1, label: 'A-01', status: 'available' });
-        addSlot(160, 100, { line: 'A', row: 2, label: 'A-02', status: 'reserved' });
-        addSlot(240, 100, { line: 'A', row: 3, label: 'A-03', status: 'occupied' });
         renderAll();
     </script>
 </body>

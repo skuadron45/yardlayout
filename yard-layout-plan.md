@@ -1,22 +1,22 @@
 # Yard Layout Implementation Plan
 
-Dokumen ini adalah rencana implementasi untuk menyempurnakan `index.html` menjadi yard layout designer untuk parkiran mobil. Fokus utamanya adalah satu yard utama, slot dengan informasi line dan row, status slot, drag and drop yang stabil, rotate, save/load, dan panel editing.
+This document tracks the implementation plan for improving `index.html` into a single-yard parking layout designer. The current direction is to keep one logical yard, no visible yard boundary, and manage slots with line, row, status, drag and drop, rotation, save/load, and editing controls.
 
-## Target Akhir
+## Target Outcome
 
-Aplikasi menjadi editor layout yard yang memungkinkan user:
+The application should allow users to:
 
-- Mengelola satu yard utama.
-- Membuat slot parkir di dalam yard.
-- Mengatur informasi slot seperti line, row, label, dan status.
-- Melihat status slot: tersedia, terpesan, dan terisi.
-- Drag and drop slot di canvas.
-- Rotate slot secara 90 derajat atau bebas dengan handle.
-- Generate banyak slot sekaligus berdasarkan line dan row.
-- Menyimpan dan memuat layout dalam format JSON.
-- Melihat statistik total dan per status.
+- Manage one main yard.
+- Add individual parking slots.
+- Generate multiple slots by line and row.
+- Edit slot information such as label, line, row, status, position, size, and rotation.
+- Use slot statuses: available, reserved, occupied, and disabled.
+- Drag slots around the canvas.
+- Rotate slots by fixed increments or with the rotation handle.
+- Save and load layouts as JSON.
+- See clear statistics for each slot status.
 
-## Struktur Data Target
+## Target Data Model
 
 ### Yard
 
@@ -31,6 +31,8 @@ Aplikasi menjadi editor layout yard yang memungkinkan user:
   rotation
 }
 ```
+
+The yard is kept as layout metadata. It does not need a visible boundary on the canvas.
 
 ### Slot
 
@@ -50,206 +52,115 @@ Aplikasi menjadi editor layout yard yang memungkinkan user:
 }
 ```
 
-Nilai `status`:
+Supported `status` values:
 
 ```js
-"available" // tersedia
-"reserved"  // terpesan
-"occupied"  // terisi
+"available"
+"reserved"
+"occupied"
+"disabled"
 ```
 
-## Phase 1 - Rapikan Fondasi Existing
-
-Tujuan phase ini adalah memperbaiki struktur yang sudah ada di `index.html` tanpa mengubah besar-besaran.
-
-- [ ] Samakan class selected antara CSS dan JavaScript.
-- [ ] Perbaiki karakter rusak seperti `Rotate 90Â°` dan ikon rotate yang rusak.
-- [ ] Ubah istilah internal dari `spot` menjadi `slot` secara bertahap.
-- [ ] Ganti `occupied: boolean` menjadi `status: string`.
-- [ ] Buat constant `SLOT_STATUSES`.
-- [ ] Update render slot agar menampilkan label status yang benar.
-- [ ] Update statistik agar menghitung total, tersedia, terpesan, dan terisi.
-- [ ] Update legend agar sesuai dengan status slot.
-- [ ] Update mini map agar warna slot mengikuti status.
-
-Contoh constant:
+## Status Mapping
 
 ```js
 const SLOT_STATUSES = {
-  available: { label: 'TERSEDIA', color: '#22c55e' },
-  reserved: { label: 'TERPESAN', color: '#f59e0b' },
-  occupied: { label: 'TERISI', color: '#ef4444' }
+  available: { label: 'AVAILABLE', color: '#22c55e' },
+  reserved: { label: 'RESERVED', color: '#f59e0b' },
+  occupied: { label: 'OCCUPIED', color: '#ef4444' },
+  disabled: { label: 'DISABLED', color: '#94a3b8' }
 };
 ```
 
-## Phase 2 - Tambahkan Konsep Yard
+## Phase 1 - Core Cleanup
 
-Tujuan phase ini adalah menambahkan satu area yard utama sebagai container/zona visual.
+- [ ] Keep the implementation as a single-file `index.html` for now.
+- [ ] Use `slot` terminology consistently in UI and state.
+- [ ] Store slot status as a string instead of a boolean.
+- [ ] Render status labels in English.
+- [ ] Update the legend for available, reserved, occupied, and disabled.
+- [ ] Update statistics for all statuses.
+- [ ] Update the mini map so slot colors follow status.
 
-- [ ] Tambahkan state yard utama.
-- [ ] Tambahkan tombol edit nama yard.
-- [ ] Simpan yard utama sebagai metadata layout.
-- [ ] Tidak perlu render tanda batas yard di canvas.
-- [ ] Hubungkan setiap slot ke yard utama.
-- [ ] Saat slot dibuat, gunakan yard utama sebagai parent.
-- [ ] Hindari UI multi-yard agar workflow tetap sederhana.
+## Phase 2 - Single Yard
 
-Catatan implementasi:
+- [ ] Keep one main yard as metadata.
+- [ ] Do not render a visible yard boundary on the canvas.
+- [ ] Keep all slots associated with the main yard.
+- [ ] Preserve `yardId` for save/load compatibility.
+- [ ] Avoid multi-yard UI controls.
 
-- Slot tetap bisa absolute terhadap canvas agar drag/drop lebih sederhana.
-- Yard berfungsi sebagai zona logis tunggal tanpa tanda batas visual.
-- Validasi boundary slot terhadap yard bisa ditambahkan setelah drag dasar stabil.
+## Phase 3 - Slot Line and Row
 
-## Phase 3 - Slot Dengan Line dan Row
-
-Tujuan phase ini adalah memastikan setiap slot memiliki informasi line dan row.
-
-- [ ] Tambahkan field `line` pada slot.
-- [ ] Tambahkan field `row` pada slot.
-- [ ] Tambahkan field `label` otomatis berdasarkan line dan row.
-- [ ] Tampilkan label slot dalam format seperti `A-01`.
-- [ ] Tampilkan informasi tambahan seperti `Line A / Row 01`.
-- [ ] Tambahkan edit line dan row pada context menu atau property panel.
-- [ ] Update search agar bisa mencari berdasarkan label, line, dan row.
-
-Format label yang disarankan:
-
-```text
-A-01
-A-02
-B-01
-B-02
-```
+- [ ] Add `line` to each slot.
+- [ ] Add `row` to each slot.
+- [ ] Generate labels such as `A-01`, `A-02`, and `B-01`.
+- [ ] Show line and row on each slot.
+- [ ] Allow editing line and row from the context menu or property panel.
+- [ ] Allow search by label, line, and row.
 
 ## Phase 4 - Multi Slot Generator
 
-Tujuan phase ini adalah menyempurnakan fitur `+ Multi Spot` menjadi generator slot berbasis line dan row.
+- [ ] Generate multiple slots from line count and row count.
+- [ ] Support line prefix.
+- [ ] Support start row.
+- [ ] Support start X and Y.
+- [ ] Support horizontal and vertical gaps.
+- [ ] Support default status, including disabled.
+- [ ] Refresh canvas, list, statistics, and mini map after generation.
 
-- [ ] Ubah dialog `Tambah Multi Spot` menjadi `Tambah Multi Slot`.
-- [ ] Gunakan yard utama sebagai tujuan slot.
-- [ ] Tambahkan input prefix line, misalnya `A`.
-- [ ] Tambahkan input jumlah line.
-- [ ] Tambahkan input jumlah row per line.
-- [ ] Tambahkan input start row.
-- [ ] Tambahkan input posisi awal X dan Y.
-- [ ] Tambahkan input gap X dan gap Y.
-- [ ] Tambahkan input status default.
-- [ ] Generate label otomatis.
-- [ ] Setelah generate, update canvas, sidebar, statistik, dan mini map.
+## Phase 5 - Drag and Drop
 
-Contoh hasil:
+- [ ] Support stable drag for single slots.
+- [ ] Snap to grid when enabled.
+- [ ] Clamp rotated slots against the top and left canvas edges.
+- [ ] Clamp final drop position against the canvas.
+- [ ] Keep property panel position fields synced during drag.
+- [ ] Keep the mini map synced after drag.
 
-```text
-A-01, A-02, A-03
-B-01, B-02, B-03
-C-01, C-02, C-03
-```
+## Phase 6 - Rotation
 
-## Phase 5 - Sempurnakan Drag and Drop
+- [ ] Show the rotation handle only for the selected slot.
+- [ ] Rotate around the slot center.
+- [ ] Support rotate 90 degrees.
+- [ ] Support rotate -90 degrees.
+- [ ] Support reset rotation.
+- [ ] Support free rotation with 15-degree snap.
+- [ ] Clamp rotated bounds against the canvas.
 
-Tujuan phase ini adalah membuat drag/drop terasa stabil dan predictable.
+## Phase 7 - Slot Status
 
-- [ ] Pertimbangkan migrasi dari mouse event ke pointer event.
-- [ ] Tambahkan snap grid yang bisa dikonfigurasi.
-- [ ] Tambahkan toggle `Snap to Grid`.
-- [ ] Pastikan drag tetap akurat setelah slot di-rotate.
-- [ ] Clamp slot agar tidak keluar canvas.
-- [ ] Clamp slot agar tidak keluar yard aktif jika fitur boundary yard diaktifkan.
-- [ ] Update posisi hanya pada slot yang sedang di-drag.
-- [ ] Update statistik/list/mini map setelah drop.
-- [ ] Tambahkan auto-scroll saat drag mendekati tepi viewport.
-- [ ] Tambahkan multi-select untuk memindahkan beberapa slot sekaligus.
-
-Prioritas:
-
-1. Single slot drag stabil.
-2. Drag tetap benar setelah rotate.
-3. Snap grid stabil.
-4. Multi-select drag.
-5. Auto-scroll.
-
-## Phase 6 - Sempurnakan Rotate
-
-Tujuan phase ini adalah membuat rotate lebih rapi dan tidak menggeser slot secara aneh.
-
-- [ ] Perbaiki rotate handle agar muncul saat slot selected.
-- [ ] Gunakan `transform-origin: center center`.
-- [ ] Simpan rotation dalam derajat.
-- [ ] Tambahkan rotate 90 derajat dari context menu.
-- [ ] Tambahkan rotate -90 derajat.
-- [ ] Tambahkan reset rotation.
-- [ ] Tambahkan rotate bebas via handle.
-- [ ] Tambahkan snap angle, misalnya 15 derajat.
-- [ ] Setelah rotate, hitung rotated bounds.
-- [ ] Clamp slot agar tetap berada di canvas.
-- [ ] Update mini map agar bisa menggambar slot yang di-rotate.
-
-Context menu yang disarankan:
-
-```text
-Ubah Nama
-Ubah Line/Row
-Set Tersedia
-Set Terpesan
-Set Terisi
-Rotate 90 deg
-Rotate -90 deg
-Reset Rotation
-Hapus
-```
-
-## Phase 7 - Status Slot
-
-Tujuan phase ini adalah mengganti toggle status sederhana menjadi status slot yang lengkap.
-
-- [ ] Ganti `toggleStatus()` menjadi `setSlotStatus(status)`.
-- [ ] Tambahkan pilihan status di context menu.
-- [ ] Tambahkan warna berbeda untuk setiap status.
-- [ ] Tampilkan status pada body slot.
-- [ ] Tampilkan status pada daftar slot.
-- [ ] Tambahkan filter status di sidebar.
-- [ ] Update statistik status.
-
-Mapping warna yang disarankan:
-
-```js
-available: '#22c55e'
-reserved: '#f59e0b'
-occupied: '#ef4444'
-```
+- [ ] Support available.
+- [ ] Support reserved.
+- [ ] Support occupied.
+- [ ] Support disabled.
+- [ ] Show status on the slot body.
+- [ ] Show status in the slot list.
+- [ ] Filter by status in the sidebar.
+- [ ] Save and load status values.
 
 ## Phase 8 - Property Panel
 
-Tujuan phase ini adalah mengganti penggunaan `prompt()` dengan panel editing yang lebih nyaman.
+- [ ] Show a details panel when a slot is selected.
+- [ ] Edit label.
+- [ ] Edit line.
+- [ ] Edit row.
+- [ ] Edit status.
+- [ ] Edit X and Y.
+- [ ] Edit width and height.
+- [ ] Edit rotation.
+- [ ] Re-render the selected slot after edits.
 
-- [ ] Tambahkan panel detail slot di sidebar.
-- [ ] Saat slot selected, tampilkan field slot.
-- [ ] Field yang bisa diedit:
-  - [ ] Label
-  - [ ] Yard
-  - [ ] Line
-  - [ ] Row
-  - [ ] Status
-  - [ ] X
-  - [ ] Y
-  - [ ] Width
-  - [ ] Height
-  - [ ] Rotation
-- [ ] Update canvas saat field berubah.
-- [ ] Validasi input angka.
-- [ ] Pastikan perubahan langsung tersimpan di state memory.
+## Phase 9 - Save, Load, and Migration
 
-## Phase 9 - Save, Load, dan Migrasi Data
-
-Tujuan phase ini adalah memastikan layout bisa disimpan dan dimuat kembali dengan schema baru.
-
-Format JSON target:
+Target JSON format:
 
 ```js
 {
   version: 2,
   yardIdCounter,
   slotIdCounter,
+  activeYardId,
   yards: [],
   slots: [],
   canvas: {
@@ -260,74 +171,42 @@ Format JSON target:
 }
 ```
 
-Checklist:
+- [ ] Save the current schema.
+- [ ] Load the current schema.
+- [ ] Migrate old files that use `spots`.
+- [ ] Create `Main Yard` when loading data without a yard.
+- [ ] Preserve line, row, status, position, size, and rotation.
+- [ ] Fall back to `available` for unknown statuses.
 
-- [ ] Update `saveLayout()` untuk schema baru.
-- [ ] Update `loadLayout()` untuk schema baru.
-- [ ] Tambahkan migrasi dari format lama yang masih memakai `spots`.
-- [ ] Jika file lama tidak punya yard, buat default yard bernama `Main Yard`.
-- [ ] Pastikan line, row, status, posisi, ukuran, dan rotation tetap tersimpan.
-- [ ] Validasi file JSON sebelum dimuat.
-- [ ] Tampilkan pesan error yang jelas jika load gagal.
+## Phase 10 - Manual Testing
 
-## Phase 10 - UX dan Visual Polish
-
-Tujuan phase ini adalah membuat editor lebih mudah dipakai.
-
-- [ ] Yard utama tidak perlu tanda batas visual di canvas.
-- [ ] Slot memiliki layout teks yang ringkas dan tidak bertabrakan.
-- [ ] Sidebar memiliki filter yard, status, dan search.
-- [ ] Toolbar dipisahkan berdasarkan action:
-  - [ ] Yard actions
-  - [ ] Slot actions
-  - [ ] View actions
-- [ ] Tambahkan zoom in/out.
-- [ ] Tambahkan reset view.
-- [ ] Tambahkan fit to content.
-- [ ] Tambahkan collision warning saat slot bertabrakan.
-- [ ] Mini map mengikuti warna status.
-
-## Phase 11 - Testing Manual
-
-Skenario manual yang harus dicek:
-
-- [ ] Tambah yard baru.
-- [ ] Tambah satu slot ke yard aktif.
-- [ ] Tambah 10 x 10 slot dengan generator.
-- [ ] Drag satu slot.
-- [ ] Drag slot setelah rotate.
-- [ ] Rotate slot 90 derajat.
-- [ ] Rotate slot bebas via handle.
-- [ ] Ubah status slot menjadi tersedia.
-- [ ] Ubah status slot menjadi terpesan.
-- [ ] Ubah status slot menjadi terisi.
-- [ ] Filter slot berdasarkan status.
-- [ ] Search slot berdasarkan label.
-- [ ] Edit line dan row.
+- [ ] Open the page with no default slots.
+- [ ] Add one slot.
+- [ ] Generate multiple slots.
+- [ ] Drag a slot.
+- [ ] Drag a rotated slot against the top and left edges.
+- [ ] Rotate a slot 90 degrees.
+- [ ] Rotate a slot with the handle.
+- [ ] Set status to available.
+- [ ] Set status to reserved.
+- [ ] Set status to occupied.
+- [ ] Set status to disabled.
+- [ ] Filter slots by status.
+- [ ] Search by label, line, and row.
 - [ ] Save layout.
 - [ ] Load layout.
-- [ ] Load file format lama.
-- [ ] Pastikan mini map tetap benar.
-- [ ] Pastikan statistik tetap benar.
+- [ ] Load an old `spots` format file.
+- [ ] Check the mini map indicator and mini map dragging.
 
-## Urutan Implementasi Yang Disarankan
+## Implementation Order
 
-1. Refactor status slot dari `occupied` ke `status`.
-2. Perbaiki selected state, rotate handle, dan karakter rusak.
-3. Update statistik, legend, daftar slot, dan mini map.
-4. Tambahkan line dan row pada slot.
-5. Sempurnakan multi slot generator.
-6. Tambahkan konsep single yard.
-7. Sempurnakan drag and drop.
-8. Sempurnakan rotate.
-9. Tambahkan property panel.
-10. Update save/load dan migrasi data.
-11. Polish UI dan testing manual.
+1. Stabilize slot status and labels.
+2. Keep the yard model single-yard only.
+3. Improve line and row generation.
+4. Improve drag and rotated bounds.
+5. Improve rotation controls.
+6. Add disabled status everywhere.
+7. Keep save/load migration compatible.
+8. Polish mini map behavior.
+9. Run manual browser checks.
 
-## Catatan Teknis
-
-- Pertahankan implementasi sebagai single-file `index.html` terlebih dahulu agar sesuai dengan mockup saat ini.
-- Jika file mulai terlalu besar, baru pecah menjadi `style.css` dan `script.js`.
-- Hindari refactor besar sekaligus. Lakukan bertahap agar fitur existing tetap bisa dites setelah setiap phase.
-- Gunakan state utama sebagai sumber kebenaran, lalu render ulang UI dari state.
-- Untuk performa, update DOM hanya pada slot yang berubah jika jumlah slot sudah besar.
