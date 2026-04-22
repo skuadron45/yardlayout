@@ -10,183 +10,270 @@
             margin: 0;
             padding: 0;
         }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f6f8;
+            color: #1f2937;
             overflow: hidden;
+            padding: 20px;
         }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
         .container {
-            max-width: 100%;
-            margin: 0;
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             height: calc(100vh - 40px);
             display: flex;
             flex-direction: column;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.12);
+            padding: 16px;
         }
-        h1 {
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
             margin-bottom: 12px;
-            color: #333;
-            font-size: 20px;
         }
+
+        h1 {
+            font-size: 20px;
+            color: #111827;
+        }
+
         .toolbar {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
-            margin-bottom: 12px;
             flex-wrap: wrap;
+            margin-bottom: 10px;
             padding: 10px;
-            background: #f3f4f6;
+            background: #eef2f7;
             border-radius: 6px;
         }
-        .toolbar button, .toolbar select {
-            padding: 6px 12px;
-            border: none;
+
+        .toolbar-divider {
+            width: 1px;
+            height: 28px;
+            background: #cbd5e1;
+            margin: 0 4px;
+        }
+
+        .toolbar-spacer {
+            flex: 1;
+        }
+
+        .toolbar button,
+        .toolbar select,
+        .toolbar input[type="number"] {
             border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
+            border: 1px solid #cbd5e1;
             font-size: 13px;
+            font-weight: 500;
+            height: 32px;
         }
-        .btn-add { background: #2563eb; color: white; }
-        .btn-add-multi { background: #0891b2; color: white; }
-        .btn-clear { background: #6b7280; color: white; }
-        .btn-save { background: #059669; color: white; }
-        .btn-load { background: #7c3aed; color: white; }
-        
-        .spot-type-select {
-            background: white;
-            border: 1px solid #ddd;
+
+        .toolbar button {
+            border: none;
+            cursor: pointer;
+            padding: 0 12px;
+            color: #ffffff;
         }
+
+        .toolbar button:hover {
+            filter: brightness(0.96);
+        }
+
+        .toolbar select {
+            min-width: 150px;
+            background: #ffffff;
+            padding: 0 8px;
+        }
+
+        .toolbar input[type="number"] {
+            width: 64px;
+            background: #ffffff;
+            padding: 0 8px;
+        }
+
+        .toggle-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            background: #ffffff;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .btn-yard { background: #334155; }
+        .btn-add { background: #2563eb; }
+        .btn-add-multi { background: #0891b2; }
+        .btn-clear { background: #6b7280; }
+        .btn-save { background: #059669; }
+        .btn-load { background: #7c3aed; }
 
         .legend {
             display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-            font-size: 12px;
-            flex-wrap: wrap;
+            gap: 14px;
             align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            color: #475569;
+            font-size: 12px;
         }
+
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
         }
+
         .legend-box {
             width: 20px;
             height: 12px;
+            border: 1px solid rgba(15, 23, 42, 0.45);
             border-radius: 2px;
-            border: 1px solid #333;
         }
-        .spot-mobil { background: #22c55e; }
-        .spot-motor { background: #3b82f6; }
-        .spot-bus { background: #f59e0b; }
-        .spot-disabled { background: #a855f7; }
-        .spot-empty { background: #e5e7eb; border-style: dashed; }
 
+        .legend-available { background: #22c55e; }
+        .legend-reserved { background: #f59e0b; }
+        .legend-occupied { background: #ef4444; }
         .main-area {
             display: flex;
             flex: 1;
             gap: 12px;
-            overflow: hidden;
             min-height: 0;
+            overflow: hidden;
         }
 
         .canvas-wrapper {
-            flex: 1;
-            border: 2px solid #374151;
-            border-radius: 4px;
-            overflow: hidden;
             position: relative;
-            background: #f9fafb;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            background: #f8fafc;
+            border: 2px solid #334155;
+            border-radius: 4px;
         }
 
         .canvas-viewport {
+            position: relative;
             width: 100%;
             height: 100%;
             overflow: auto;
-            position: relative;
         }
 
         .parking-canvas {
             position: relative;
-            background: 
-                linear-gradient(90deg, #d1d5db 1px, transparent 1px),
-                linear-gradient(#d1d5db 1px, transparent 1px),
-                linear-gradient(90deg, #e5e7eb 1px, transparent 1px),
-                linear-gradient(#e5e7eb 1px, transparent 1px);
-            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
-            background-color: #f9fafb;
             min-width: 100%;
             min-height: 100%;
+            transform-origin: 0 0;
+            background:
+                linear-gradient(90deg, #cbd5e1 1px, transparent 1px),
+                linear-gradient(#cbd5e1 1px, transparent 1px),
+                linear-gradient(90deg, #e2e8f0 1px, transparent 1px),
+                linear-gradient(#e2e8f0 1px, transparent 1px);
+            background-color: #f8fafc;
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
         }
 
-        .parking-spot {
+        .parking-slot {
             position: absolute;
-            border: 2px solid #374151;
-            border-radius: 4px;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            gap: 1px;
+            border: 2px solid rgba(15, 23, 42, 0.75);
+            border-radius: 4px;
+            color: #ffffff;
             cursor: grab;
-            user-select: none;
             font-size: 11px;
-            font-weight: 600;
-            transition: box-shadow 0.1s;
+            font-weight: 700;
+            line-height: 1.1;
+            text-align: center;
+            user-select: none;
+            transform-origin: center center;
+            transition: box-shadow 0.1s, outline-color 0.1s;
         }
-        .parking-spot:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 100;
+
+        .parking-slot:hover {
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
+            z-index: 120;
         }
-        .parking-spot.selected {
+
+        .parking-slot.selected {
             outline: 3px solid #2563eb;
             outline-offset: 2px;
+            z-index: 140;
         }
-        .spot-mobil { background: #22c55e; color: white; }
-        .spot-empty { background: #f3f4f6; color: #6b7280; border-style: dashed; }
-        
-        .spot-label { font-size: 10px; opacity: 0.85; }
-        
+
+        .slot-available { background: #22c55e; }
+        .slot-reserved { background: #f59e0b; color: #111827; }
+        .slot-occupied { background: #ef4444; }
+
+        .slot-line-row,
+        .slot-status {
+            font-size: 9px;
+            font-weight: 700;
+            opacity: 0.9;
+        }
+
         .rotate-handle {
             position: absolute;
             top: -12px;
             right: -12px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border: 2px solid #2563eb;
-            border-radius: 50%;
-            cursor: grab;
+            width: 22px;
+            height: 22px;
             display: none;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            border: 2px solid #2563eb;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #2563eb;
+            cursor: grab;
+            font-size: 13px;
+            line-height: 1;
             z-index: 10;
         }
-        .spot-selected .rotate-handle {
+
+        .parking-slot.selected .rotate-handle {
             display: flex;
         }
 
         .sidebar {
-            width: 280px;
+            width: 320px;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            min-height: 0;
         }
 
         .panel {
-            background: #f3f4f6;
-            padding: 12px;
+            background: #eef2f7;
             border-radius: 6px;
+            padding: 12px;
             font-size: 13px;
         }
+
         .panel-title {
-            font-weight: 600;
             margin-bottom: 8px;
-            color: #374151;
+            color: #334155;
+            font-weight: 700;
         }
 
         .stats-grid {
@@ -194,58 +281,139 @@
             grid-template-columns: 1fr 1fr;
             gap: 8px;
         }
+
         .stat-item {
-            background: white;
-            padding: 8px;
+            background: #ffffff;
             border-radius: 4px;
+            padding: 8px;
             text-align: center;
         }
+
         .stat-value {
+            color: #111827;
             font-size: 20px;
-            font-weight: 700;
-            color: #374151;
-        }
-        .stat-label {
-            font-size: 11px;
-            color: #6b7280;
+            font-weight: 800;
         }
 
-        .spot-list {
-            flex: 1;
-            overflow-y: auto;
-            background: white;
-            border-radius: 4px;
-            max-height: 300px;
+        .stat-label {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
         }
-        .spot-item {
-            display: flex;
+
+        .filters {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .filters input,
+        .filters select,
+        .property-grid input,
+        .property-grid select {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            background: #ffffff;
+            padding: 6px;
+            font-size: 12px;
+        }
+
+        .slot-list {
+            flex: 1;
+            max-height: 260px;
+            overflow-y: auto;
+            border-radius: 4px;
+            background: #ffffff;
+        }
+
+        .slot-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
             align-items: center;
-            justify-content: space-between;
-            padding: 6px 10px;
-            border-bottom: 1px solid #f3f4f6;
+            min-height: 38px;
+            padding: 7px 10px;
+            border-bottom: 1px solid #eef2f7;
             cursor: pointer;
             font-size: 12px;
         }
-        .spot-item:hover { background: #f3f4f6; }
-        .spot-item.selected { background: #dbeafe; }
-        .spot-item .status {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+
+        .slot-item:hover {
+            background: #f8fafc;
+        }
+
+        .slot-item.selected {
+            background: #dbeafe;
+        }
+
+        .slot-item-title {
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .slot-item-sub {
+            margin-top: 1px;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .status-pill {
+            min-width: 70px;
+            border-radius: 999px;
+            padding: 3px 7px;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .status-pill.reserved {
+            color: #111827;
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .property-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .property-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .property-field label {
+            color: #475569;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .empty-property {
+            color: #64748b;
+            line-height: 1.4;
         }
 
         .mini-map {
             position: absolute;
-            bottom: 12px;
             right: 12px;
-            width: 150px;
-            height: 100px;
-            background: rgba(255,255,255,0.95);
-            border: 2px solid #374151;
-            border-radius: 4px;
+            bottom: 12px;
+            width: 160px;
+            height: 108px;
             overflow: hidden;
+            border: 2px solid #334155;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.95);
             z-index: 500;
         }
+
         .mini-map canvas {
             width: 100%;
             height: 100%;
@@ -253,95 +421,201 @@
 
         .context-menu {
             position: fixed;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            padding: 6px 0;
-            min-width: 140px;
-            z-index: 1000;
             display: none;
+            min-width: 170px;
+            padding: 6px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+            z-index: 1200;
         }
-        .context-menu.show { display: block; }
+
+        .context-menu.show {
+            display: block;
+        }
+
         .context-menu-item {
             padding: 8px 14px;
             cursor: pointer;
+            color: #1f2937;
             font-size: 13px;
         }
-        .context-menu-item:hover { background: #f3f4f6; }
+
+        .context-menu-item:hover {
+            background: #f1f5f9;
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            margin: 5px 0;
+            background: #e2e8f0;
+        }
+
+        .danger {
+            color: #dc2626;
+        }
 
         .toast {
             position: fixed;
-            bottom: 20px;
             right: 20px;
-            background: #059669;
-            color: white;
+            bottom: 20px;
+            z-index: 2000;
             padding: 10px 16px;
             border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s;
+            background: #059669;
+            color: #ffffff;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.22);
             font-size: 13px;
-            z-index: 2000;
-        }
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.25s;
         }
 
-        .grid-lines {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .dialog-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.48);
+        }
+
+        .dialog {
+            width: min(440px, calc(100vw - 32px));
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 18px;
+            box-shadow: 0 20px 36px rgba(15, 23, 42, 0.24);
+        }
+
+        .dialog h3 {
+            margin-bottom: 12px;
+            color: #111827;
+            font-size: 16px;
+        }
+
+        .dialog-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .dialog-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .dialog-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .dialog-field label {
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .dialog-field input,
+        .dialog-field select {
             width: 100%;
-            height: 100%;
-            pointer-events: none;
-            background: 
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 99px,
-                    #e5e7eb 99px,
-                    #e5e7eb 100px
-                ),
-                repeating-linear-gradient(
-                    90deg,
-                    transparent,
-                    transparent 99px,
-                    #e5e7eb 99px,
-                    #e5e7eb 100px
-                );
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 7px;
+        }
+
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .dialog-actions button {
+            height: 32px;
+            border-radius: 4px;
+            padding: 0 12px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .dialog-cancel {
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+        }
+
+        .dialog-primary {
+            border: none;
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                height: calc(100vh - 20px);
+            }
+
+            .main-area {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 44vh;
+            }
+
+            .canvas-wrapper {
+                min-height: 48vh;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Yard Parking Layout Designer</h1>
-        
+        <div class="header">
+            <h1>Yard Parking Layout Designer</h1>
+        </div>
+
         <div class="toolbar">
-            <select id="spotType" class="spot-type-select">
-                <option value="mobil">Slot</option>
-            </select>
-            <button class="btn-add" onclick="addSpot()">+ 1 Spot</button>
-            <button class="btn-add-multi" onclick="showAddMultiDialog()">+ Multi Spot</button>
+            <button class="btn-yard" onclick="editYard()">Edit Yard</button>
+            <button class="btn-add" onclick="addSlot()">+ 1 Slot</button>
+            <button class="btn-add-multi" onclick="showAddMultiDialog()">+ Multi Slot</button>
             <button class="btn-clear" onclick="clearAll()">Clear</button>
-            <div style="flex:1"></div>
+            <div class="toolbar-divider"></div>
+            <label class="toggle-control">
+                <input type="checkbox" id="snapToggle" checked onchange="updateSnapSettings()">
+                Snap
+            </label>
+            <input type="number" id="gridSizeInput" min="1" max="100" value="10" onchange="updateSnapSettings()" title="Grid size">
+            <div class="toolbar-spacer"></div>
             <button class="btn-save" onclick="saveLayout()">Save</button>
             <button class="btn-load" onclick="loadLayout()">Load</button>
         </div>
 
         <div class="legend">
-            <div class="legend-item"><div class="legend-box spot-mobil"></div><span>Slot</span></div>
-            <div class="legend-item"><div class="legend-box spot-empty"></div><span>Kosong</span></div>
+            <div class="legend-item"><div class="legend-box legend-available"></div><span>Tersedia</span></div>
+            <div class="legend-item"><div class="legend-box legend-reserved"></div><span>Terpesan</span></div>
+            <div class="legend-item"><div class="legend-box legend-occupied"></div><span>Terisi</span></div>
         </div>
 
         <div class="main-area">
             <div class="canvas-wrapper">
                 <div class="canvas-viewport" id="viewport">
-                    <div class="parking-canvas" id="canvas" style="width: 2000px; height: 1500px;">
-                        <div class="grid-lines"></div>
-                    </div>
+                    <div class="parking-canvas" id="canvas" style="width: 2000px; height: 1500px;"></div>
                 </div>
                 <div class="mini-map" id="miniMapContainer">
                     <canvas id="miniMap"></canvas>
@@ -353,222 +627,575 @@
                     <div class="panel-title">Statistik</div>
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <div class="stat-value" id="total">0</div>
-                            <div class="stat-label">Total</div>
+                            <div class="stat-value" id="totalSlots">0</div>
+                            <div class="stat-label">Total Slot</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value" id="occupied">0</div>
+                            <div class="stat-value" id="availableSlots">0</div>
+                            <div class="stat-label">Tersedia</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="reservedSlots">0</div>
+                            <div class="stat-label">Terpesan</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="occupiedSlots">0</div>
                             <div class="stat-label">Terisi</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="mobilCount">0</div>
-                            <div class="stat-label">Slot</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="emptyCount">0</div>
-                            <div class="stat-label">Kosong</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="panel" style="flex:1; display:flex; flex-direction:column; min-height:0;">
-                    <div class="panel-title">Daftar Spot</div>
-                    <input type="text" id="searchSpot" placeholder="Cari..." style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px; margin-bottom:8px;" oninput="filterSpots()">
-                    <div class="spot-list" id="spotList"></div>
+                <div class="panel" style="display:flex; flex-direction:column; min-height:0;">
+                    <div class="panel-title">Daftar Slot</div>
+                    <div class="filters">
+                        <input type="text" id="searchSlot" placeholder="Cari label, line, row..." oninput="updateSlotList()">
+                        <select id="filterStatus" onchange="updateSlotList()">
+                            <option value="all">Semua status</option>
+                            <option value="available">Tersedia</option>
+                            <option value="reserved">Terpesan</option>
+                            <option value="occupied">Terisi</option>
+                        </select>
+                    </div>
+                    <div class="slot-list" id="slotList"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">Detail Slot</div>
+                    <div id="emptyProperty" class="empty-property">Pilih slot untuk mengubah line, row, status, ukuran, posisi, dan rotation.</div>
+                    <div id="propertyPanel" class="property-grid" style="display:none;">
+                        <div class="property-field full">
+                            <label for="propLabel">Label</label>
+                            <input id="propLabel" type="text" oninput="setSelectedSlotField('label', this.value)">
+                        </div>
+                        <div class="property-field">
+                            <label for="propStatus">Status</label>
+                            <select id="propStatus" onchange="setSlotStatus(this.value, false)">
+                                <option value="available">Tersedia</option>
+                                <option value="reserved">Terpesan</option>
+                                <option value="occupied">Terisi</option>
+                            </select>
+                        </div>
+                        <div class="property-field">
+                            <label for="propLine">Line</label>
+                            <input id="propLine" type="text" oninput="setSelectedSlotField('line', this.value)">
+                        </div>
+                        <div class="property-field">
+                            <label for="propRow">Row</label>
+                            <input id="propRow" type="number" min="1" oninput="setSelectedSlotField('row', Number(this.value))">
+                        </div>
+                        <div class="property-field">
+                            <label for="propX">X</label>
+                            <input id="propX" type="number" oninput="setSelectedSlotField('x', Number(this.value))">
+                        </div>
+                        <div class="property-field">
+                            <label for="propY">Y</label>
+                            <input id="propY" type="number" oninput="setSelectedSlotField('y', Number(this.value))">
+                        </div>
+                        <div class="property-field">
+                            <label for="propWidth">Width</label>
+                            <input id="propWidth" type="number" min="20" oninput="setSelectedSlotField('width', Number(this.value))">
+                        </div>
+                        <div class="property-field">
+                            <label for="propHeight">Height</label>
+                            <input id="propHeight" type="number" min="20" oninput="setSelectedSlotField('height', Number(this.value))">
+                        </div>
+                        <div class="property-field full">
+                            <label for="propRotation">Rotation</label>
+                            <input id="propRotation" type="number" min="0" max="359" oninput="setSelectedSlotField('rotation', Number(this.value))">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item" onclick="editSpotLabel()">Ubah Nama</div>
-        <div class="context-menu-item" onclick="toggleStatus()">Ubah Status</div>
-        <div class="context-menu-item" onclick="rotateSpot()">Rotate 90°</div>
-        <div class="context-menu-item" style="color: #ef4444;" onclick="deleteSpot()">Hapus</div>
+        <div class="context-menu-item" onclick="editSlotIdentity()">Ubah Line/Row</div>
+        <div class="context-menu-item" onclick="editSlotLabel()">Ubah Nama</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="setSlotStatus('available')">Set Tersedia</div>
+        <div class="context-menu-item" onclick="setSlotStatus('reserved')">Set Terpesan</div>
+        <div class="context-menu-item" onclick="setSlotStatus('occupied')">Set Terisi</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="rotateSelectedSlot(90)">Rotate 90 deg</div>
+        <div class="context-menu-item" onclick="rotateSelectedSlot(-90)">Rotate -90 deg</div>
+        <div class="context-menu-item" onclick="resetSelectedRotation()">Reset Rotation</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" onclick="deleteSelectedSlot()">Hapus</div>
     </div>
 
     <div class="toast" id="toast">Tersimpan!</div>
 
     <script>
-        const SPOT_SIZES = {
-            mobil: { width: 60, height: 80 }
+        const SLOT_SIZE = { width: 60, height: 80 };
+        const SLOT_STATUSES = {
+            available: { label: 'TERSEDIA', color: '#22c55e', pillClass: '' },
+            reserved: { label: 'TERPESAN', color: '#f59e0b', pillClass: 'reserved' },
+            occupied: { label: 'TERISI', color: '#ef4444', pillClass: '' }
         };
 
-        let spots = [];
-        let spotIdCounter = 1;
-        let selectedSpot = null;
+        let yards = [];
+        let slots = [];
+        let yardIdCounter = 1;
+        let slotIdCounter = 1;
+        let activeYardId = null;
+        let selectedSlot = null;
         let dragging = false;
+        let dragSlot = null;
         let dragOffset = { x: 0, y: 0 };
-        let dragSpot = null;
+        let rotatingSlot = null;
+        let rotateStartAngle = 0;
+        let rotateStartRotation = 0;
+        let miniMapDragging = false;
+        let snapToGrid = true;
+        let gridSize = 10;
 
         const canvas = document.getElementById('canvas');
         const viewport = document.getElementById('viewport');
         const contextMenu = document.getElementById('contextMenu');
 
-        function resizeCanvas() {
-            let maxX = 1000, maxY = 800;
-            for (let spot of spots) {
-                maxX = Math.max(maxX, spot.x + spot.width + 200);
-                maxY = Math.max(maxY, spot.y + spot.height + 200);
-            }
-            canvas.style.width = maxX + 'px';
-            canvas.style.height = maxY + 'px';
+        function createYard(name, x, y, width, height) {
+            const yard = {
+                id: yardIdCounter++,
+                name: name || 'Yard ' + yardIdCounter,
+                x: Number.isFinite(x) ? x : 60 + yards.length * 40,
+                y: Number.isFinite(y) ? y : 60 + yards.length * 40,
+                width: Number.isFinite(width) ? width : 900,
+                height: Number.isFinite(height) ? height : 520,
+                rotation: 0
+            };
+
+            yards.push(yard);
+            activeYardId = yard.id;
+            renderAll();
+            showToast(yard.name + ' dibuat');
+            return yard;
         }
 
-        function addSpot(x, y, type, label) {
-            const spotType = type || document.getElementById('spotType').value;
-            const size = SPOT_SIZES[spotType] || { width: 60, height: 80 };
-            
-            const spot = {
-                id: spotIdCounter++,
-                type: spotType,
-                x: x !== undefined ? x : 100 + (spots.length % 5) * (size.width + 10),
-                y: y !== undefined ? y : 100 + Math.floor(spots.length / 5) * (size.height + 20),
-                width: size.width,
-                height: size.height,
-                occupied: false,
-                rotation: 0,
-                label: label || (spotType.charAt(0).toUpperCase() + spotType.slice(1) + ' ' + spotIdCounter)
+        function editYard() {
+            const yard = getActiveYard();
+            const name = prompt('Nama yard:', yard.name);
+            if (name === null) return;
+            yard.name = name.trim() || yard.name;
+            renderAll();
+        }
+
+        function getActiveYard() {
+            if (!yards.length) createYard('Main Yard', 40, 40, 1000, 620);
+            return yards.find(y => y.id === activeYardId) || yards[0];
+        }
+
+        function addSlot(x, y, options) {
+            const opts = options || {};
+            const yard = yards.find(y => y.id === (opts.yardId || activeYardId)) || getActiveYard();
+            const yardSlots = slots.filter(slot => slot.yardId === yard.id);
+            const nextRow = opts.row || yardSlots.length + 1;
+            const line = String(opts.line || 'A').toUpperCase();
+            const row = Math.max(1, Number(nextRow) || 1);
+            const label = opts.label || formatSlotLabel(line, row);
+            const defaultX = yard.x + 24 + (yardSlots.length % 8) * (SLOT_SIZE.width + 18);
+            const defaultY = yard.y + 48 + Math.floor(yardSlots.length / 8) * (SLOT_SIZE.height + 22);
+
+            const slot = {
+                id: slotIdCounter++,
+                yardId: yard.id,
+                line,
+                row,
+                label,
+                status: opts.status || 'available',
+                x: Number.isFinite(x) ? x : defaultX,
+                y: Number.isFinite(y) ? y : defaultY,
+                width: opts.width || SLOT_SIZE.width,
+                height: opts.height || SLOT_SIZE.height,
+                rotation: opts.rotation || 0
             };
-            
-            spots.push(spot);
-            renderSpotElement(spot);
+
+            slots.push(slot);
+            renderSlotElement(slot);
+            selectSlot(slot, false);
             resizeCanvas();
             updateStats();
+            updateSlotList();
+            updateMiniMap();
+            return slot;
+        }
+
+        function renderAll() {
+            ensureSingleYard();
+            canvas.innerHTML = '';
+            for (const slot of slots) {
+                renderSlotElement(slot);
+            }
+            updateStats();
+            updateSlotList();
+            updatePropertyPanel();
+            resizeCanvas();
             updateMiniMap();
         }
 
-        function addMultiSpots() {
-            const type = document.getElementById('spotType').value;
-            const size = SPOT_SIZES[type] || { width: 60, height: 80 };
-
-            const rowsInput = document.getElementById('multiRows');
-            const colsInput = document.getElementById('multiCols');
-            const startXInput = document.getElementById('multiStartX');
-            const startYInput = document.getElementById('multiStartY');
-            
-            const rows = rowsInput ? Math.max(1, parseInt(rowsInput.value) || 10) : 10;
-            const cols = colsInput ? Math.max(1, parseInt(colsInput.value) || 20) : 20;
-            const startX = startXInput ? Math.max(0, parseInt(startXInput.value) || 100) : 100;
-            const startY = startYInput ? Math.max(0, parseInt(startYInput.value) || 100) : 100;
-            const gapX = 20;
-            const gapY = 25;
-
-            const width = size.width;
-            const height = size.height;
-
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    addSpot(
-                        startX + c * (width + gapX),
-                        startY + r * (height + gapY),
-                        type,
-                        type.charAt(0).toUpperCase() + type.slice(1) + '-' + (r * cols + c + 1)
-                    );
-                }
-            }
-            showToast(rows * cols + ' spot ditambahkan!');
-            updateSpotList();
-        }
-
-        function renderSpotElement(spot) {
-            let el = document.getElementById('spot-' + spot.id);
+        function renderSlotElement(slot) {
+            normalizeSlot(slot);
+            let el = document.getElementById('slot-' + slot.id);
             if (!el) {
                 el = document.createElement('div');
-                el.id = 'spot-' + spot.id;
+                el.id = 'slot-' + slot.id;
                 canvas.appendChild(el);
-                
-                el.addEventListener('mousedown', (e) => startDrag(e, spot));
-                el.addEventListener('contextmenu', (e) => showContextMenu(e, spot));
-                el.addEventListener('click', (e) => { e.stopPropagation(); selectSpot(spot); });
+                el.addEventListener('mousedown', event => startDrag(event, slot));
+                el.addEventListener('contextmenu', event => showContextMenu(event, slot));
+                el.addEventListener('click', event => {
+                    event.stopPropagation();
+                    selectSlot(slot);
+                });
             }
-            
-            const isSelected = spot.id === selectedSpot?.id;
-            el.className = 'parking-spot ' + (spot.occupied ? 'spot-' + spot.type : 'spot-empty') + (isSelected ? ' spot-selected' : '');
-            el.style.left = spot.x + 'px';
-            el.style.top = spot.y + 'px';
-            el.style.width = spot.width + 'px';
-            el.style.height = spot.height + 'px';
-            el.style.transform = 'rotate(' + (spot.rotation || 0) + 'deg)';
-            el.innerHTML = `<div>${spot.label}</div><div class="spot-label">${spot.occupied ? 'TERISI' : 'KOSONG'}</div><div class="rotate-handle" onmousedown="event.stopPropagation(); startRotate(event, ${spot.id})">↻</div>`;
+
+            const status = getStatus(slot.status);
+            el.className = 'parking-slot slot-' + slot.status + (selectedSlot && selectedSlot.id === slot.id ? ' selected' : '');
+            el.style.left = slot.x + 'px';
+            el.style.top = slot.y + 'px';
+            el.style.width = slot.width + 'px';
+            el.style.height = slot.height + 'px';
+            el.style.transform = 'rotate(' + normalizeRotation(slot.rotation) + 'deg)';
+            el.innerHTML = [
+                '<div>' + escapeHtml(slot.label) + '</div>',
+                '<div class="slot-line-row">Line ' + escapeHtml(slot.line) + ' / Row ' + String(slot.row).padStart(2, '0') + '</div>',
+                '<div class="slot-status">' + status.label + '</div>',
+                '<div class="rotate-handle" title="Rotate bebas">&#8635;</div>'
+            ].join('');
+
+            const rotateHandle = el.querySelector('.rotate-handle');
+            rotateHandle.addEventListener('mousedown', event => startRotate(event, slot.id));
         }
 
-        function selectSpot(spot) {
-            document.querySelectorAll('.parking-spot').forEach(el => el.classList.remove('selected'));
-            selectedSpot = spot;
-            const el = document.getElementById('spot-' + spot.id);
+        function selectSlot(slot, center) {
+            selectedSlot = slot;
+            document.querySelectorAll('.parking-slot').forEach(el => el.classList.remove('selected'));
+            const el = document.getElementById('slot-' + slot.id);
             if (el) el.classList.add('selected');
-            
-            document.querySelectorAll('.spot-item').forEach(el => el.classList.remove('selected'));
-            const listItem = document.querySelector('.spot-item[data-id="' + spot.id + '"]');
-            if (listItem) listItem.classList.add('selected');
+            document.querySelectorAll('.slot-item').forEach(el => el.classList.toggle('selected', Number(el.dataset.id) === slot.id));
+            updatePropertyPanel();
+            if (center !== false) centerSlotInView(slot);
+        }
 
-            // center in viewport
+        function centerSlotInView(slot) {
+            const el = document.getElementById('slot-' + slot.id);
+            if (!el) return;
             const elRect = el.getBoundingClientRect();
             const vpRect = viewport.getBoundingClientRect();
-            if (elRect.left < vpRect.left || elRect.right > vpRect.right ||
-                elRect.top < vpRect.top || elRect.bottom > vpRect.bottom) {
-                viewport.scrollTop = spot.y - vpRect.height / 2;
-                viewport.scrollLeft = spot.x - vpRect.width / 2;
-            }
+            const outOfView = elRect.left < vpRect.left || elRect.right > vpRect.right || elRect.top < vpRect.top || elRect.bottom > vpRect.bottom;
+            if (!outOfView) return;
+            viewport.scrollLeft = Math.max(0, slot.x - vpRect.width / 2);
+            viewport.scrollTop = Math.max(0, slot.y - vpRect.height / 2);
         }
 
-        function startDrag(e, spot) {
-            if (e.button !== 0) return;
-            if (rotatingSpot) return;
-            e.preventDefault();
-            e.stopPropagation();
+        function startDrag(event, slot) {
+            if (event.button !== 0 || rotatingSlot) return;
+            event.preventDefault();
+            event.stopPropagation();
             dragging = true;
-            dragSpot = spot;
-            const el = document.getElementById('spot-' + spot.id);
+            dragSlot = slot;
+            const el = document.getElementById('slot-' + slot.id);
             const rect = el.getBoundingClientRect();
-            dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-            selectSpot(spot);
+            dragOffset = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+            selectSlot(slot, false);
             document.body.style.cursor = 'grabbing';
             document.body.style.userSelect = 'none';
         }
 
-        function onMouseMove(e) {
-            if (!dragging || !dragSpot) return;
-            e.preventDefault();
-            
+        function onMouseMove(event) {
+            if (!dragging || !dragSlot) return;
+            event.preventDefault();
             const vpRect = viewport.getBoundingClientRect();
-            let x = e.clientX - vpRect.left + viewport.scrollLeft - dragOffset.x;
-            let y = e.clientY - vpRect.top + viewport.scrollTop - dragOffset.y;
-            
-            x = Math.round(x / 10) * 10;
-            y = Math.round(y / 10) * 10;
-            
-            dragSpot.x = x;
-            dragSpot.y = y;
-            
-            const el = document.getElementById('spot-' + dragSpot.id);
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
+            let x = event.clientX - vpRect.left + viewport.scrollLeft - dragOffset.x;
+            let y = event.clientY - vpRect.top + viewport.scrollTop - dragOffset.y;
+
+            if (snapToGrid) {
+                x = snapValue(x);
+                y = snapValue(y);
+            }
+
+            dragSlot.x = x;
+            dragSlot.y = y;
+            clampSlotToTopLeft(dragSlot);
+            const el = document.getElementById('slot-' + dragSlot.id);
+            if (el) {
+                el.style.left = dragSlot.x + 'px';
+                el.style.top = dragSlot.y + 'px';
+            }
+            syncPropertyPosition();
         }
 
         function onMouseUp() {
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
-            if (dragging && dragSpot) {
-                clampSpotToCanvas(dragSpot);
-                const el = document.getElementById('spot-' + dragSpot.id);
-                if (el) {
-                    el.style.left = dragSpot.x + 'px';
-                    el.style.top = dragSpot.y + 'px';
-                }
+            if (dragging && dragSlot) {
+                clampSlotToCanvas(dragSlot);
+                renderSlotElement(dragSlot);
                 resizeCanvas();
+                updateSlotList();
+                updatePropertyPanel();
                 updateMiniMap();
             }
             dragging = false;
-            dragSpot = null;
+            dragSlot = null;
         }
 
-        function showContextMenu(e, spot) {
-            e.preventDefault();
-            selectSpot(spot);
-            contextMenu.style.left = e.clientX + 'px';
-            contextMenu.style.top = e.clientY + 'px';
+        function startRotate(event, slotId) {
+            event.preventDefault();
+            event.stopPropagation();
+            rotatingSlot = slots.find(slot => slot.id === slotId);
+            if (!rotatingSlot) return;
+            selectSlot(rotatingSlot, false);
+            rotateStartRotation = rotatingSlot.rotation || 0;
+            const slotEl = document.getElementById('slot-' + slotId);
+            const rect = slotEl.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            rotateStartAngle = Math.atan2(event.clientY - centerY, event.clientX - centerX) * 180 / Math.PI;
+            document.body.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+        }
+
+        function handleRotate(event) {
+            if (!rotatingSlot) return;
+            const slotEl = document.getElementById('slot-' + rotatingSlot.id);
+            const rect = slotEl.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const currentAngle = Math.atan2(event.clientY - centerY, event.clientX - centerX) * 180 / Math.PI;
+            const delta = currentAngle - rotateStartAngle;
+            const nextRotation = snapAngle(rotateStartRotation + delta);
+            rotatingSlot.rotation = nextRotation;
+            slotEl.style.transform = 'rotate(' + nextRotation + 'deg)';
+            syncPropertyRotation();
+        }
+
+        function endRotate() {
+            if (rotatingSlot) {
+                rotatingSlot.rotation = normalizeRotation(rotatingSlot.rotation);
+                clampSlotToCanvas(rotatingSlot);
+                renderSlotElement(rotatingSlot);
+                resizeCanvas();
+                updatePropertyPanel();
+                updateMiniMap();
+            }
+            rotatingSlot = null;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+
+        function rotateSelectedSlot(delta) {
+            if (!selectedSlot) return;
+            selectedSlot.rotation = normalizeRotation((selectedSlot.rotation || 0) + delta);
+            clampSlotToCanvas(selectedSlot);
+            renderSlotElement(selectedSlot);
+            updatePropertyPanel();
+            updateMiniMap();
+            hideContextMenu();
+        }
+
+        function resetSelectedRotation() {
+            if (!selectedSlot) return;
+            selectedSlot.rotation = 0;
+            clampSlotToCanvas(selectedSlot);
+            renderSlotElement(selectedSlot);
+            updatePropertyPanel();
+            updateMiniMap();
+            hideContextMenu();
+        }
+
+        function setSlotStatus(status, closeMenu) {
+            if (!selectedSlot || !SLOT_STATUSES[status]) return;
+            selectedSlot.status = status;
+            renderSlotElement(selectedSlot);
+            updateStats();
+            updateSlotList();
+            updatePropertyPanel();
+            updateMiniMap();
+            if (closeMenu !== false) hideContextMenu();
+        }
+
+        function setSelectedSlotField(field, value) {
+            if (!selectedSlot) return;
+            if (['x', 'y', 'width', 'height', 'rotation', 'row', 'yardId'].includes(field) && !Number.isFinite(value)) return;
+
+            if (field === 'width' || field === 'height') {
+                selectedSlot[field] = Math.max(20, value);
+            } else if (field === 'row') {
+                selectedSlot.row = Math.max(1, Math.round(value || 1));
+            } else if (field === 'rotation') {
+                selectedSlot.rotation = normalizeRotation(value || 0);
+            } else if (field === 'line') {
+                selectedSlot.line = String(value || '').trim().toUpperCase() || 'A';
+            } else if (field === 'yardId') {
+                if (yards.some(yard => yard.id === value)) selectedSlot.yardId = value;
+            } else {
+                selectedSlot[field] = value;
+            }
+
+            clampSlotToCanvas(selectedSlot);
+            renderSlotElement(selectedSlot);
+            updateSlotList();
+            updateMiniMap();
+        }
+
+        function editSlotLabel() {
+            if (!selectedSlot) return;
+            const nextLabel = prompt('Nama slot:', selectedSlot.label);
+            if (nextLabel !== null && nextLabel.trim()) {
+                selectedSlot.label = nextLabel.trim();
+                renderSlotElement(selectedSlot);
+                updateSlotList();
+                updatePropertyPanel();
+            }
+            hideContextMenu();
+        }
+
+        function editSlotIdentity() {
+            if (!selectedSlot) return;
+            const line = prompt('Line:', selectedSlot.line);
+            if (line === null) {
+                hideContextMenu();
+                return;
+            }
+            const row = prompt('Row:', selectedSlot.row);
+            if (row === null) {
+                hideContextMenu();
+                return;
+            }
+            selectedSlot.line = (line.trim() || 'A').toUpperCase();
+            selectedSlot.row = Math.max(1, parseInt(row, 10) || 1);
+            selectedSlot.label = formatSlotLabel(selectedSlot.line, selectedSlot.row);
+            renderSlotElement(selectedSlot);
+            updateSlotList();
+            updatePropertyPanel();
+            hideContextMenu();
+        }
+
+        function deleteSelectedSlot() {
+            if (!selectedSlot) return;
+            const el = document.getElementById('slot-' + selectedSlot.id);
+            if (el) el.remove();
+            slots = slots.filter(slot => slot.id !== selectedSlot.id);
+            selectedSlot = null;
+            updateStats();
+            updateSlotList();
+            updatePropertyPanel();
+            updateMiniMap();
+            hideContextMenu();
+        }
+
+        function clearAll() {
+            if (!slots.length && yards.length <= 1) return;
+            if (!confirm('Hapus semua yard dan slot?')) return;
+            yards = [];
+            slots = [];
+            yardIdCounter = 1;
+            slotIdCounter = 1;
+            activeYardId = null;
+            selectedSlot = null;
+            createYard('Main Yard', 40, 40, 1000, 620);
+            renderAll();
+            showToast('Layout dikosongkan');
+        }
+
+        function updateStats() {
+            const counts = {
+                available: 0,
+                reserved: 0,
+                occupied: 0
+            };
+            for (const slot of slots) {
+                normalizeSlot(slot);
+                counts[slot.status]++;
+            }
+            document.getElementById('totalSlots').textContent = slots.length;
+            document.getElementById('availableSlots').textContent = counts.available;
+            document.getElementById('reservedSlots').textContent = counts.reserved;
+            document.getElementById('occupiedSlots').textContent = counts.occupied;
+        }
+
+        function updateSlotList() {
+            const list = document.getElementById('slotList');
+            const search = document.getElementById('searchSlot').value.trim().toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+
+            list.innerHTML = '';
+            const filtered = slots.filter(slot => {
+                const yard = yards.find(y => y.id === slot.yardId);
+                const haystack = [slot.label, slot.line, slot.row, yard ? yard.name : ''].join(' ').toLowerCase();
+                const matchSearch = !search || haystack.includes(search);
+                const matchStatus = statusFilter === 'all' || slot.status === statusFilter;
+                return matchSearch && matchStatus;
+            });
+
+            for (const slot of filtered.slice(0, 500)) {
+                const yard = yards.find(y => y.id === slot.yardId);
+                const status = getStatus(slot.status);
+                const item = document.createElement('div');
+                item.className = 'slot-item' + (selectedSlot && selectedSlot.id === slot.id ? ' selected' : '');
+                item.dataset.id = slot.id;
+                item.onclick = () => selectSlot(slot);
+                item.innerHTML = [
+                    '<div>',
+                    '<div class="slot-item-title">' + escapeHtml(slot.label) + '</div>',
+                    '<div class="slot-item-sub">' + escapeHtml(yard ? yard.name : '-') + ' | Line ' + escapeHtml(slot.line) + ' / Row ' + String(slot.row).padStart(2, '0') + '</div>',
+                    '</div>',
+                    '<div class="status-pill ' + status.pillClass + '" style="background:' + status.color + '">' + status.label + '</div>'
+                ].join('');
+                list.appendChild(item);
+            }
+
+            if (!filtered.length) {
+                list.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px;">Tidak ada slot.</div>';
+            } else if (filtered.length > 500) {
+                list.insertAdjacentHTML('beforeend', '<div style="padding:8px; color:#64748b; font-size:11px;">Menampilkan 500 dari ' + filtered.length + '</div>');
+            }
+        }
+
+        function updatePropertyPanel() {
+            const empty = document.getElementById('emptyProperty');
+            const panel = document.getElementById('propertyPanel');
+
+            if (!selectedSlot) {
+                empty.style.display = 'block';
+                panel.style.display = 'none';
+                return;
+            }
+
+            empty.style.display = 'none';
+            panel.style.display = 'grid';
+            document.getElementById('propLabel').value = selectedSlot.label;
+            document.getElementById('propStatus').value = selectedSlot.status;
+            document.getElementById('propLine').value = selectedSlot.line;
+            document.getElementById('propRow').value = selectedSlot.row;
+            document.getElementById('propX').value = Math.round(selectedSlot.x);
+            document.getElementById('propY').value = Math.round(selectedSlot.y);
+            document.getElementById('propWidth').value = Math.round(selectedSlot.width);
+            document.getElementById('propHeight').value = Math.round(selectedSlot.height);
+            document.getElementById('propRotation').value = Math.round(normalizeRotation(selectedSlot.rotation));
+        }
+
+        function ensureSingleYard() {
+            if (!yards.length) return;
+            const mainYard = yards[0];
+            yards = [mainYard];
+            activeYardId = mainYard.id;
+            for (const slot of slots) {
+                slot.yardId = mainYard.id;
+            }
+        }
+
+        function updateSnapSettings() {
+            snapToGrid = document.getElementById('snapToggle').checked;
+            gridSize = Math.max(1, parseInt(document.getElementById('gridSizeInput').value, 10) || 10);
+            document.getElementById('gridSizeInput').value = gridSize;
+        }
+
+        function showContextMenu(event, slot) {
+            event.preventDefault();
+            selectSlot(slot, false);
+            contextMenu.style.left = event.clientX + 'px';
+            contextMenu.style.top = event.clientY + 'px';
             contextMenu.classList.add('show');
         }
 
@@ -576,351 +1203,112 @@
             contextMenu.classList.remove('show');
         }
 
-        function editSpotLabel() {
-            if (!selectedSpot) return;
-            const newLabel = prompt('Nama spot:', selectedSpot.label);
-            if (newLabel !== null && newLabel.trim()) {
-                selectedSpot.label = newLabel.trim();
-                renderSpotElement(selectedSpot);
+        function showAddMultiDialog() {
+            const yard = getActiveYard();
+            const html = [
+                '<div class="dialog-backdrop" id="multiDialog">',
+                '<div class="dialog">',
+                '<h3>Tambah Multi Slot</h3>',
+                '<div class="dialog-grid">',
+                '<div class="dialog-field"><label>Prefix Line</label><input id="multiLinePrefix" type="text" value="A"></div>',
+                '<div class="dialog-field"><label>Jumlah Line</label><input id="multiLineCount" type="number" min="1" max="50" value="3"></div>',
+                '<div class="dialog-field"><label>Row per Line</label><input id="multiRowCount" type="number" min="1" max="100" value="10"></div>',
+                '<div class="dialog-field"><label>Start Row</label><input id="multiStartRow" type="number" min="1" value="1"></div>',
+                '<div class="dialog-field"><label>Posisi X</label><input id="multiStartX" type="number" value="' + (yard.x + 24) + '"></div>',
+                '<div class="dialog-field"><label>Posisi Y</label><input id="multiStartY" type="number" value="' + (yard.y + 48) + '"></div>',
+                '<div class="dialog-field"><label>Gap X</label><input id="multiGapX" type="number" min="0" value="20"></div>',
+                '<div class="dialog-field"><label>Gap Y</label><input id="multiGapY" type="number" min="0" value="25"></div>',
+                '<div class="dialog-field full"><label>Status Default</label><select id="multiStatus"><option value="available">Tersedia</option><option value="reserved">Terpesan</option><option value="occupied">Terisi</option></select></div>',
+                '</div>',
+                '<div class="dialog-actions">',
+                '<button class="dialog-cancel" onclick="closeDialog(\'multiDialog\')">Batal</button>',
+                '<button class="dialog-primary" onclick="addMultiSlots(); closeDialog(\'multiDialog\')">Tambah</button>',
+                '</div>',
+                '</div>',
+                '</div>'
+            ].join('');
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function addMultiSlots() {
+            const yardId = getActiveYard().id;
+            const linePrefix = (document.getElementById('multiLinePrefix').value.trim() || 'A').toUpperCase();
+            const lineCount = Math.max(1, parseInt(document.getElementById('multiLineCount').value, 10) || 1);
+            const rowCount = Math.max(1, parseInt(document.getElementById('multiRowCount').value, 10) || 1);
+            const startRow = Math.max(1, parseInt(document.getElementById('multiStartRow').value, 10) || 1);
+            const startX = parseInt(document.getElementById('multiStartX').value, 10) || 0;
+            const startY = parseInt(document.getElementById('multiStartY').value, 10) || 0;
+            const gapX = Math.max(0, parseInt(document.getElementById('multiGapX').value, 10) || 0);
+            const gapY = Math.max(0, parseInt(document.getElementById('multiGapY').value, 10) || 0);
+            const status = document.getElementById('multiStatus').value;
+
+            for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+                const line = makeLineName(linePrefix, lineIndex);
+                for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+                    const row = startRow + rowIndex;
+                    addSlot(
+                        startX + rowIndex * (SLOT_SIZE.width + gapX),
+                        startY + lineIndex * (SLOT_SIZE.height + gapY),
+                        {
+                            yardId,
+                            line,
+                            row,
+                            label: formatSlotLabel(line, row),
+                            status
+                        }
+                    );
+                }
             }
-            hideContextMenu();
+
+            activeYardId = yardId;
+            renderAll();
+            showToast((lineCount * rowCount) + ' slot ditambahkan');
         }
 
-        function toggleStatus() {
-            if (!selectedSpot) return;
-            selectedSpot.occupied = !selectedSpot.occupied;
-            renderSpotElement(selectedSpot);
-            updateStats();
-            hideContextMenu();
+        function closeDialog(id) {
+            const dialog = document.getElementById(id);
+            if (dialog) dialog.remove();
         }
-
-        function adjustRotationOffset(spot, fromRotation, toRotation) {
-            const before = getRotatedDimensions({ width: spot.width, height: spot.height, rotation: fromRotation });
-            const after = getRotatedDimensions({ width: spot.width, height: spot.height, rotation: toRotation });
-            spot.x += (before.w - after.w) / 2;
-            spot.y += (before.h - after.h) / 2;
-        }
-
-        function rotateSpot() {
-            if (!selectedSpot) return;
-            const fromRotation = selectedSpot.rotation || 0;
-            const toRotation = (fromRotation + 90) % 360;
-            adjustRotationOffset(selectedSpot, fromRotation, toRotation);
-            selectedSpot.rotation = toRotation;
-            clampSpotToCanvas(selectedSpot);
-            renderSpotElement(selectedSpot);
-            resizeCanvas();
-            updateMiniMap();
-            hideContextMenu();
-        }
-
-        function startRotate(e, spotId) {
-            e.preventDefault();
-            e.stopPropagation();
-            rotatingSpot = spots.find(s => s.id === spotId);
-            if (!rotatingSpot) return;
-            rotateStartRotation = rotatingSpot.rotation || 0;
-            const spotEl = document.getElementById('spot-' + spotId);
-            const rect = spotEl.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            rotateStartAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
-            document.body.style.cursor = 'grabbing';
-            document.body.style.userSelect = 'none';
-        }
-
-        function handleRotate(e) {
-            if (!rotatingSpot) return;
-            const spotEl = document.getElementById('spot-' + rotatingSpot.id);
-            const rect = spotEl.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const currentAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
-            const delta = currentAngle - rotateStartAngle;
-            let newRotation = ((rotateStartRotation + delta) % 360 + 360) % 360;
-            newRotation = Math.round(newRotation / 15) * 15;
-            rotatingSpot.rotation = newRotation;
-            spotEl.style.transform = 'rotate(' + newRotation + 'deg)';
-        }
-
-        function getRotatedDimensions(spot) {
-            const r = ((spot.rotation || 0) % 180 + 180) % 180;
-            if (r === 90) {
-                return { w: spot.height, h: spot.width };
-            }
-            return { w: spot.width, h: spot.height };
-        }
-
-        function getRotatedBounds(spot) {
-            var cx = spot.x + spot.width / 2;
-            var cy = spot.y + spot.height / 2;
-            var r = ((spot.rotation || 0) % 360 + 360) % 360 * Math.PI / 180;
-            var cos = Math.cos(r);
-            var sin = Math.sin(r);
-            
-            var w = spot.width;
-            var h = spot.height;
-            
-            // Use rotation matrix around center
-            // x' = cx + (x-cx)*cos - (y-cy)*sin
-            // y' = cy + (x-cx)*sin + (y-cy)*cos
-            
-            var p1 = rotatePoint(spot.x, spot.y, cx, cy, cos, sin);
-            var p2 = rotatePoint(spot.x + w, spot.y, cx, cy, cos, sin);
-            var p3 = rotatePoint(spot.x, spot.y + h, cx, cy, cos, sin);
-            var p4 = rotatePoint(spot.x + w, spot.y + h, cx, cy, cos, sin);
-            
-            var minL = Math.min(p1.x, p2.x, p3.x, p4.x);
-            var maxL = Math.max(p1.x, p2.x, p3.x, p4.x);
-            var minT = Math.min(p1.y, p2.y, p3.y, p4.y);
-            var maxT = Math.max(p1.y, p2.y, p3.y, p4.y);
-            
-            return { left: minL, top: minT, right: maxL, bottom: maxT };
-        }
-
-        function rotatePoint(px, py, cx, cy, cos, sin) {
-            var dx = px - cx;
-            var dy = py - cy;
-            return {
-                x: cx + dx * cos - dy * sin,
-                y: cy + dx * sin + dy * cos
-            };
-        }
-
-        function clampSpotToCanvas(spot) {
-            if (!spot) return;
-            const canvasW = parseInt(canvas.style.width) || canvas.clientWidth || 0;
-            const canvasH = parseInt(canvas.style.height) || canvas.clientHeight || 0;
-            if (canvasW <= 0 || canvasH <= 0) return;
-
-            let bounds = getRotatedBounds(spot);
-            const dxMin = -bounds.left;
-            const dxMax = canvasW - bounds.right;
-            let dx = 0;
-            if (dxMin > dxMax) {
-                dx = dxMin;
-            } else if (dxMin > 0) {
-                dx = dxMin;
-            } else if (dxMax < 0) {
-                dx = dxMax;
-            }
-            spot.x += dx;
-
-            bounds = getRotatedBounds(spot);
-            const dyMin = -bounds.top;
-            const dyMax = canvasH - bounds.bottom;
-            let dy = 0;
-            if (dyMin > dyMax) {
-                dy = dyMin;
-            } else if (dyMin > 0) {
-                dy = dyMin;
-            } else if (dyMax < 0) {
-                dy = dyMax;
-            }
-            spot.y += dy;
-        }
-
-        function endRotate() {
-            if (rotatingSpot) {
-                const from = rotatingSpot.rotation || 0;
-                const to = Math.round(from / 15) * 15;
-                adjustRotationOffset(rotatingSpot, from, to);
-                rotatingSpot.rotation = ((to % 360) + 360) % 360;
-                clampSpotToCanvas(rotatingSpot);
-
-                renderSpotElement(rotatingSpot);
-                resizeCanvas();
-                updateMiniMap();
-            }
-            rotatingSpot = null;
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
-        }
-
-        function deleteSpot() {
-            if (!selectedSpot) return;
-            const el = document.getElementById('spot-' + selectedSpot.id);
-            if (el) el.remove();
-            spots = spots.filter(s => s.id !== selectedSpot.id);
-            selectedSpot = null;
-            updateStats();
-            updateSpotList();
-            updateMiniMap();
-            hideContextMenu();
-        }
-
-        function clearAll() {
-            if (spots.length === 0) return;
-            if (!confirm('Hapus semua spot?')) return;
-            spots = [];
-            spotIdCounter = 1;
-            canvas.querySelectorAll('.parking-spot').forEach(el => el.remove());
-            resizeCanvas();
-            updateStats();
-            updateSpotList();
-            updateMiniMap();
-        }
-
-        function updateStats() {
-            let occupied = 0;
-            for (let spot of spots) {
-                if (spot.occupied) occupied++;
-            }
-            
-            document.getElementById('total').textContent = spots.length;
-            document.getElementById('occupied').textContent = occupied;
-            document.getElementById('mobilCount').textContent = spots.length;
-            document.getElementById('emptyCount').textContent = spots.length - occupied;
-        }
-
-        function updateSpotList() {
-            const search = document.getElementById('searchSpot').value.toLowerCase();
-            const list = document.getElementById('spotList');
-            list.innerHTML = '';
-            
-            const filtered = spots.filter(s => s.label.toLowerCase().includes(search));
-            for (let spot of filtered.slice(0, 500)) {
-                const el = document.createElement('div');
-                el.className = 'spot-item';
-                el.dataset.id = spot.id;
-                el.onclick = () => selectSpot(spot);
-                el.innerHTML = `
-                    <span>${spot.label}</span>
-                    <div class="status" style="background: ${spot.occupied ? '#22c55e' : '#e5e7eb'}"></div>
-                `;
-                list.appendChild(el);
-            }
-            
-            if (filtered.length > 500) {
-                list.innerHTML += `<div style="padding:8px; color:#6b7280; font-size:11px;">Menampilkan 500 dari ${filtered.length}</div>`;
-            }
-        }
-
-        function filterSpots() {
-            updateSpotList();
-        }
-
-        function updateMiniMap() {
-            const canvas = document.getElementById('miniMap');
-            const ctx = canvas.getContext('2d');
-            const w = canvas.width = 150;
-            const h = canvas.height = 100;
-            
-            ctx.fillStyle = '#f3f4f6';
-            ctx.fillRect(0, 0, w, h);
-            
-            const boundW = parseInt(document.getElementById('canvas').style.width);
-            const boundH = parseInt(document.getElementById('canvas').style.height);
-            const scale = Math.min(w / boundW, h / boundH);
-            const offsetX = (w - boundW * scale) / 2;
-            const offsetY = (h - boundH * scale) / 2;
-            
-            const colors = { mobil: '#22c55e' };
-            
-            for (let spot of spots) {
-                ctx.fillStyle = spot.occupied ? '#22c55e' : '#e5e7eb';
-                ctx.fillRect(
-                    offsetX + spot.x * scale,
-                    offsetY + spot.y * scale,
-                    spot.width * scale,
-                    spot.height * scale
-                );
-            }
-            
-            // viewport indicator
-            ctx.strokeStyle = '#2563eb';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(
-                offsetX + viewport.scrollLeft * scale,
-                offsetY + viewport.scrollTop * scale,
-                viewport.clientWidth * scale,
-                viewport.clientHeight * scale
-            );
-        }
-
-        let miniMapDragging = false;
-        let rotatingSpot = null;
-        let rotateStartAngle = 0;
-        let rotateStartRotation = 0;
-
-        function scrollFromMiniMap(e) {
-            const miniMap = document.getElementById('miniMapContainer');
-            const rect = miniMap.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
-            
-            const boundW = parseInt(document.getElementById('canvas').style.width);
-            const boundH = parseInt(document.getElementById('canvas').style.height);
-            const scale = Math.min(150 / boundW, 100 / boundH);
-            const offsetX = (150 - boundW * scale) / 2;
-            const offsetY = (100 - boundH * scale) / 2;
-            
-            const targetX = (clickX - offsetX) / scale;
-            const targetY = (clickY - offsetY) / scale;
-            
-            viewport.scrollTo(
-                Math.max(0, targetX - viewport.clientWidth / 2),
-                Math.max(0, targetY - viewport.clientHeight / 2)
-            );
-        }
-
-        function onMiniMapMouseDown(e) {
-            miniMapDragging = true;
-            scrollFromMiniMap(e);
-            document.body.style.cursor = 'grabbing';
-        }
-
-        function onMiniMapMouseMove(e) {
-            if (!miniMapDragging) return;
-            scrollFromMiniMap(e);
-        }
-
-        function onMiniMapMouseUp() {
-            miniMapDragging = false;
-            document.body.style.cursor = '';
-        }
-
-        document.getElementById('miniMapContainer').addEventListener('mousedown', onMiniMapMouseDown);
-        document.addEventListener('mousemove', (e) => { onMiniMapMouseMove(e); handleRotate(e); });
-        document.addEventListener('mouseup', (e) => { onMiniMapMouseUp(); endRotate(); });
 
         function saveLayout() {
-            const data = { spotIdCounter: spotIdCounter, spots: spots };
-            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const data = {
+                version: 2,
+                yardIdCounter,
+                slotIdCounter,
+                activeYardId,
+                yards,
+                slots,
+                canvas: {
+                    width: parseInt(canvas.style.width, 10) || canvas.clientWidth,
+                    height: parseInt(canvas.style.height, 10) || canvas.clientHeight,
+                    gridSize
+                }
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'parking-layout.json';
-            a.click();
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'yard-layout.json';
+            link.click();
             URL.revokeObjectURL(url);
-            showToast('Layout disimpan!');
+            showToast('Layout disimpan');
         }
 
         function loadLayout() {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.json';
-            input.onchange = function(e) {
-                const file = e.target.files[0];
+            input.onchange = event => {
+                const file = event.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = function(evt) {
+                reader.onload = evt => {
                     try {
                         const data = JSON.parse(evt.target.result);
-                        spotIdCounter = data.spotIdCounter || 1;
-                        spots = data.spots || [];
-                        
-                        canvas.querySelectorAll('.parking-spot').forEach(el => el.remove());
-                        for (let spot of spots) {
-                            renderSpotElement(spot);
-                        }
-                        resizeCanvas();
-                        updateStats();
-                        updateSpotList();
-                        updateMiniMap();
-                        showToast('Layout dimuat! (' + spots.length + ' spot)');
-                    } catch (err) {
-                        alert('Gagal memuat: ' + err.message);
+                        loadData(data);
+                        showToast('Layout dimuat (' + slots.length + ' slot)');
+                    } catch (error) {
+                        alert('Gagal memuat layout: ' + error.message);
                     }
                 };
                 reader.readAsText(file);
@@ -928,56 +1316,298 @@
             input.click();
         }
 
-        function showAddMultiDialog() {
-            const html = `
-                <div id="multiDialog" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1500;">
-                    <div style="background:white; padding:20px; border-radius:8px; width:300px;">
-                        <h3 style="margin-bottom:12px;">Tambah Multi Spot</h3>
-                        <label style="display:block; margin-bottom:8px; font-size:13px;">
-                            Baris: <input type="number" id="multiRows" value="10" min="1" max="100" style="width:60px; padding:4px;">
-                        </label>
-                        <label style="display:block; margin-bottom:8px; font-size:13px;">
-                            Kolom: <input type="number" id="multiCols" value="10" min="1" max="100" style="width:60px; padding:4px;">
-                        </label>
-                        <label style="display:block; margin-bottom:8px; font-size:13px;">
-                            Posisi X: <input type="number" id="multiStartX" value="10" style="width:60px; padding:4px;">
-                        </label>
-                        <label style="display:block; margin-bottom:8px; font-size:13px;">
-                            Posisi Y: <input type="number" id="multiStartY" value="10" style="width:60px; padding:4px;">
-                        </label>
-                        <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end;">
-                            <button onclick="document.getElementById('multiDialog').remove()" style="padding:6px 12px; border:1px solid #ddd; background:white; border-radius:4px;">Batal</button>
-                            <button onclick="addMultiSpots(); document.getElementById('multiDialog').remove()" style="padding:6px 12px; border:none; background:#2563eb; color:white; border-radius:4px;">Tambah</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', html);
+        function loadData(data) {
+            if (Array.isArray(data.spots) && !Array.isArray(data.slots)) {
+                const defaultYard = { id: 1, name: 'Main Yard', x: 40, y: 40, width: 1000, height: 620, rotation: 0 };
+                yards = [defaultYard];
+                slots = data.spots.map((spot, index) => {
+                    const row = index + 1;
+                    return {
+                        id: spot.id || index + 1,
+                        yardId: defaultYard.id,
+                        line: spot.line || 'A',
+                        row: spot.row || row,
+                        label: spot.label || formatSlotLabel(spot.line || 'A', spot.row || row),
+                        status: spot.occupied ? 'occupied' : 'available',
+                        x: spot.x || 0,
+                        y: spot.y || 0,
+                        width: spot.width || SLOT_SIZE.width,
+                        height: spot.height || SLOT_SIZE.height,
+                        rotation: spot.rotation || 0
+                    };
+                });
+                yardIdCounter = 2;
+                slotIdCounter = Math.max(0, ...slots.map(slot => slot.id)) + 1;
+                activeYardId = defaultYard.id;
+            } else {
+                yards = Array.isArray(data.yards) ? data.yards.map(normalizeYard).slice(0, 1) : [];
+                slots = Array.isArray(data.slots) ? data.slots.map(normalizeSlot) : [];
+                yardIdCounter = data.yardIdCounter || Math.max(0, ...yards.map(yard => yard.id)) + 1;
+                slotIdCounter = data.slotIdCounter || Math.max(0, ...slots.map(slot => slot.id)) + 1;
+                activeYardId = data.activeYardId || (yards[0] && yards[0].id) || null;
+                if (data.canvas) {
+                    gridSize = Math.max(1, data.canvas.gridSize || gridSize);
+                    document.getElementById('gridSizeInput').value = gridSize;
+                }
+            }
+
+            if (!yards.length) createYard('Main Yard', 40, 40, 1000, 620);
+            if (!activeYardId || !yards.some(yard => yard.id === activeYardId)) activeYardId = yards[0].id;
+            ensureSingleYard();
+            selectedSlot = null;
+            renderAll();
         }
 
-        function showToast(msg) {
+        function updateMiniMap() {
+            const miniCanvas = document.getElementById('miniMap');
+            const ctx = miniCanvas.getContext('2d');
+            const w = miniCanvas.width = 160;
+            const h = miniCanvas.height = 108;
+            const metrics = getMiniMapMetrics(w, h);
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, w, h);
+
+            for (const slot of slots) {
+                drawMiniSlot(ctx, slot, metrics.scale, metrics.offsetX, metrics.offsetY);
+            }
+
+            ctx.strokeStyle = '#111827';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(
+                metrics.offsetX + viewport.scrollLeft * metrics.scale,
+                metrics.offsetY + viewport.scrollTop * metrics.scale,
+                viewport.clientWidth * metrics.scale,
+                viewport.clientHeight * metrics.scale
+            );
+        }
+
+        function getMiniMapMetrics(width, height) {
+            const boundW = parseInt(canvas.style.width, 10) || canvas.clientWidth || 1;
+            const boundH = parseInt(canvas.style.height, 10) || canvas.clientHeight || 1;
+            const scale = Math.min(width / boundW, height / boundH);
+            return {
+                boundW,
+                boundH,
+                scale,
+                offsetX: (width - boundW * scale) / 2,
+                offsetY: (height - boundH * scale) / 2
+            };
+        }
+
+        function drawMiniSlot(ctx, slot, scale, offsetX, offsetY) {
+            const cx = offsetX + (slot.x + slot.width / 2) * scale;
+            const cy = offsetY + (slot.y + slot.height / 2) * scale;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(normalizeRotation(slot.rotation) * Math.PI / 180);
+            ctx.fillStyle = getStatus(slot.status).color;
+            ctx.fillRect(-slot.width * scale / 2, -slot.height * scale / 2, slot.width * scale, slot.height * scale);
+            ctx.restore();
+        }
+
+        function scrollFromMiniMap(event) {
+            const miniMap = document.getElementById('miniMapContainer');
+            const rect = miniMap.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const clickY = event.clientY - rect.top;
+            const metrics = getMiniMapMetrics(rect.width || 160, rect.height || 108);
+            const targetX = (clickX - metrics.offsetX) / metrics.scale;
+            const targetY = (clickY - metrics.offsetY) / metrics.scale;
+            viewport.scrollTo(
+                Math.max(0, targetX - viewport.clientWidth / 2),
+                Math.max(0, targetY - viewport.clientHeight / 2)
+            );
+        }
+
+        function onMiniMapMouseDown(event) {
+            miniMapDragging = true;
+            scrollFromMiniMap(event);
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function onMiniMapMouseMove(event) {
+            if (!miniMapDragging) return;
+            scrollFromMiniMap(event);
+        }
+
+        function onMiniMapMouseUp() {
+            miniMapDragging = false;
+            document.body.style.cursor = '';
+        }
+
+        function resizeCanvas() {
+            let maxX = 1200;
+            let maxY = 900;
+            for (const yard of yards) {
+                maxX = Math.max(maxX, yard.x + yard.width + 220);
+                maxY = Math.max(maxY, yard.y + yard.height + 220);
+            }
+            for (const slot of slots) {
+                const bounds = getRotatedBounds(slot);
+                maxX = Math.max(maxX, bounds.right + 220);
+                maxY = Math.max(maxY, bounds.bottom + 220);
+            }
+            canvas.style.width = Math.ceil(maxX) + 'px';
+            canvas.style.height = Math.ceil(maxY) + 'px';
+        }
+
+        function clampSlotToCanvas(slot) {
+            const canvasW = parseInt(canvas.style.width, 10) || canvas.clientWidth || 0;
+            const canvasH = parseInt(canvas.style.height, 10) || canvas.clientHeight || 0;
+            clampSlotToTopLeft(slot);
+            let bounds = getRotatedBounds(slot);
+            if (bounds.right > canvasW) slot.x -= bounds.right - canvasW;
+            if (bounds.bottom > canvasH) slot.y -= bounds.bottom - canvasH;
+            clampSlotToTopLeft(slot);
+        }
+
+        function clampSlotToTopLeft(slot) {
+            const bounds = getRotatedBounds(slot);
+            if (bounds.left < 0) slot.x -= bounds.left;
+            if (bounds.top < 0) slot.y -= bounds.top;
+        }
+
+        function getRotatedBounds(slot) {
+            const cx = slot.x + slot.width / 2;
+            const cy = slot.y + slot.height / 2;
+            const rad = normalizeRotation(slot.rotation) * Math.PI / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+            const points = [
+                rotatePoint(slot.x, slot.y, cx, cy, cos, sin),
+                rotatePoint(slot.x + slot.width, slot.y, cx, cy, cos, sin),
+                rotatePoint(slot.x, slot.y + slot.height, cx, cy, cos, sin),
+                rotatePoint(slot.x + slot.width, slot.y + slot.height, cx, cy, cos, sin)
+            ];
+            return {
+                left: Math.min(...points.map(point => point.x)),
+                top: Math.min(...points.map(point => point.y)),
+                right: Math.max(...points.map(point => point.x)),
+                bottom: Math.max(...points.map(point => point.y))
+            };
+        }
+
+        function rotatePoint(px, py, cx, cy, cos, sin) {
+            const dx = px - cx;
+            const dy = py - cy;
+            return {
+                x: cx + dx * cos - dy * sin,
+                y: cy + dx * sin + dy * cos
+            };
+        }
+
+        function normalizeYard(yard) {
+            return {
+                id: yard.id,
+                name: yard.name || 'Yard ' + yard.id,
+                x: yard.x || 0,
+                y: yard.y || 0,
+                width: yard.width || 900,
+                height: yard.height || 520,
+                rotation: yard.rotation || 0
+            };
+        }
+
+        function normalizeSlot(slot) {
+            if (!slot.status) slot.status = slot.occupied ? 'occupied' : 'available';
+            if (!SLOT_STATUSES[slot.status]) slot.status = 'available';
+            if (!slot.line) slot.line = 'A';
+            slot.line = String(slot.line).toUpperCase();
+            slot.row = Math.max(1, Number(slot.row) || 1);
+            if (!slot.label) slot.label = formatSlotLabel(slot.line, slot.row);
+            slot.width = Number(slot.width) || SLOT_SIZE.width;
+            slot.height = Number(slot.height) || SLOT_SIZE.height;
+            slot.x = Number(slot.x) || 0;
+            slot.y = Number(slot.y) || 0;
+            slot.rotation = normalizeRotation(Number(slot.rotation) || 0);
+            if (!slot.yardId && yards[0]) slot.yardId = yards[0].id;
+            return slot;
+        }
+
+        function getStatus(status) {
+            return SLOT_STATUSES[status] || SLOT_STATUSES.available;
+        }
+
+        function normalizeRotation(value) {
+            return ((Number(value) || 0) % 360 + 360) % 360;
+        }
+
+        function snapAngle(value) {
+            return normalizeRotation(Math.round(value / 15) * 15);
+        }
+
+        function snapValue(value) {
+            return Math.round(value / gridSize) * gridSize;
+        }
+
+        function formatSlotLabel(line, row) {
+            return String(line || 'A').toUpperCase() + '-' + String(row || 1).padStart(2, '0');
+        }
+
+        function makeLineName(prefix, index) {
+            if (/^[A-Z]$/.test(prefix)) {
+                return String.fromCharCode(prefix.charCodeAt(0) + index);
+            }
+            return prefix + String(index + 1).padStart(2, '0');
+        }
+
+        function syncPropertyPosition() {
+            if (!selectedSlot || selectedSlot !== dragSlot) return;
+            document.getElementById('propX').value = Math.round(selectedSlot.x);
+            document.getElementById('propY').value = Math.round(selectedSlot.y);
+        }
+
+        function syncPropertyRotation() {
+            if (!selectedSlot || selectedSlot !== rotatingSlot) return;
+            document.getElementById('propRotation').value = Math.round(normalizeRotation(selectedSlot.rotation));
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showToast(message) {
             const toast = document.getElementById('toast');
-            toast.textContent = msg;
+            toast.textContent = message;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        document.addEventListener('mousemove', onMouseMove, { passive: false });
-        document.addEventListener('mouseup', onMouseUp);
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.context-menu')) hideContextMenu();
-            if (!e.target.closest('.parking-spot')) {
-                document.querySelectorAll('.parking-spot').forEach(el => el.classList.remove('selected'));
-                selectedSpot = null;
+        document.getElementById('miniMapContainer').addEventListener('mousedown', onMiniMapMouseDown);
+        document.addEventListener('mousemove', event => {
+            onMouseMove(event);
+            onMiniMapMouseMove(event);
+            handleRotate(event);
+        }, { passive: false });
+        document.addEventListener('mouseup', () => {
+            onMouseUp();
+            onMiniMapMouseUp();
+            endRotate();
+        });
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.context-menu')) hideContextMenu();
+            if (!event.target.closest('.parking-slot') && !event.target.closest('.property-grid')) {
+                selectedSlot = null;
+                document.querySelectorAll('.parking-slot').forEach(el => el.classList.remove('selected'));
+                document.querySelectorAll('.slot-item').forEach(el => el.classList.remove('selected'));
+                updatePropertyPanel();
             }
         });
+        viewport.addEventListener('scroll', updateMiniMap);
+        window.addEventListener('resize', updateMiniMap);
 
-        viewport.onscroll = updateMiniMap;
-        window.onresize = updateMiniMap;
-
-        // Initialize
-        resizeCanvas();
-        updateMiniMap();
+        createYard('Main Yard', 40, 40, 1000, 620);
+        addSlot(80, 100, { line: 'A', row: 1, label: 'A-01', status: 'available' });
+        addSlot(160, 100, { line: 'A', row: 2, label: 'A-02', status: 'reserved' });
+        addSlot(240, 100, { line: 'A', row: 3, label: 'A-03', status: 'occupied' });
+        renderAll();
     </script>
 </body>
 </html>
