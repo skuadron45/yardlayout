@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yard Parking Layout</title>
+    <title>Yard Area Layout Designer</title>
     <style>
         * {
             box-sizing: border-box;
@@ -118,7 +118,6 @@
             user-select: none;
         }
 
-        .btn-yard { background: #334155; }
         .btn-add { background: #2563eb; }
         .btn-add-multi { background: #0891b2; }
         .btn-clear { background: #6b7280; }
@@ -227,8 +226,7 @@
         .slot-occupied { background: #ef4444; }
         .slot-disabled { background: #94a3b8; color: #1f2937; border-style: dashed; }
 
-        .slot-line-row,
-        .slot-status {
+        .slot-line-row {
             font-size: 9px;
             font-weight: 700;
             opacity: 0.9;
@@ -593,11 +591,10 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Yard Parking Layout Designer</h1>
+            <h1>Yard Area Layout Designer</h1>
         </div>
 
         <div class="toolbar">
-            <button class="btn-yard" onclick="editYard()">Edit Yard</button>
             <button class="btn-add" onclick="addSlot()">+ 1 Slot</button>
             <button class="btn-add-multi" onclick="showAddMultiDialog()">+ Multi Slot</button>
             <button class="btn-clear" onclick="clearAll()">Clear</button>
@@ -783,7 +780,6 @@
             yards.push(yard);
             activeYardId = yard.id;
             renderAll();
-            showToast(yard.name + ' created');
             return yard;
         }
 
@@ -863,7 +859,6 @@
                 });
             }
 
-            const status = getStatus(slot.status);
             el.className = 'parking-slot slot-' + slot.status + (selectedSlot && selectedSlot.id === slot.id ? ' selected' : '');
             el.style.left = slot.x + 'px';
             el.style.top = slot.y + 'px';
@@ -872,8 +867,7 @@
             el.style.transform = 'rotate(' + normalizeRotation(slot.rotation) + 'deg)';
             el.innerHTML = [
                 '<div>' + escapeHtml(slot.label) + '</div>',
-                '<div class="slot-line-row">Line ' + escapeHtml(slot.line) + ' / Row ' + String(slot.row).padStart(2, '0') + '</div>',
-                '<div class="slot-status">' + status.label + '</div>',
+                '<div class="slot-line-row">' + escapeHtml(slot.line) + '-' + String(slot.row).padStart(2, '0') + '</div>',
                 '<div class="rotate-handle" title="Rotate bebas">&#8635;</div>'
             ].join('');
 
@@ -1221,7 +1215,6 @@
         }
 
         function showAddMultiDialog() {
-            const yard = getActiveYard();
             const html = [
                 '<div class="dialog-backdrop" id="multiDialog">',
                 '<div class="dialog">',
@@ -1231,8 +1224,8 @@
                 '<div class="dialog-field"><label>Line Count</label><input id="multiLineCount" type="number" min="1" max="50" value="3"></div>',
                 '<div class="dialog-field"><label>Row per Line</label><input id="multiRowCount" type="number" min="1" max="100" value="10"></div>',
                 '<div class="dialog-field"><label>Start Row</label><input id="multiStartRow" type="number" min="1" value="1"></div>',
-                '<div class="dialog-field"><label>Position X</label><input id="multiStartX" type="number" value="' + (yard.x + 24) + '"></div>',
-                '<div class="dialog-field"><label>Position Y</label><input id="multiStartY" type="number" value="' + (yard.y + 48) + '"></div>',
+                '<div class="dialog-field"><label>Position X</label><input id="multiStartX" type="number" value="0"></div>',
+                '<div class="dialog-field"><label>Position Y</label><input id="multiStartY" type="number" value="0"></div>',
                 '<div class="dialog-field"><label>Gap X</label><input id="multiGapX" type="number" min="0" value="20"></div>',
                 '<div class="dialog-field"><label>Gap Y</label><input id="multiGapY" type="number" min="0" value="25"></div>',
                 '<div class="dialog-field full"><label>Default Status</label><select id="multiStatus"><option value="available">Available</option><option value="reserved">Reserved</option><option value="occupied">Occupied</option><option value="disabled">Disabled</option></select></div>',
