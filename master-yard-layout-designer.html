@@ -27,6 +27,11 @@
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            height: 100%;
+        }
+
         body {
             margin: 0;
             font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
@@ -34,6 +39,7 @@
             background:
                 radial-gradient(circle at top left, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0) 42%),
                 linear-gradient(180deg, #f9f7f1 0%, var(--bg) 100%);
+            overflow: hidden;
         }
 
         button,
@@ -44,9 +50,10 @@
         }
 
         .app {
-            min-height: 100vh;
+            height: 100vh;
             display: grid;
             grid-template-rows: auto 1fr;
+            overflow: hidden;
         }
 
         .topbar {
@@ -108,6 +115,7 @@
             gap: 14px;
             padding: 14px;
             min-height: 0;
+            overflow: hidden;
         }
 
         .panel {
@@ -117,6 +125,7 @@
             box-shadow: var(--shadow);
             overflow: hidden;
             min-height: 0;
+            height: 100%;
         }
 
         .panel-head {
@@ -252,8 +261,9 @@
 
         .stage {
             display: grid;
-            grid-template-rows: auto 1fr auto;
+            grid-template-rows: auto minmax(0, 1fr) auto;
             min-width: 0;
+            min-height: 0;
         }
 
         .stage-toolbar {
@@ -326,6 +336,7 @@
         .preview-wrap {
             position: relative;
             overflow: auto;
+            min-height: 0;
             background:
                 repeating-linear-gradient(0deg, transparent 0 23px, rgba(0, 0, 0, 0.05) 23px 24px),
                 repeating-linear-gradient(90deg, transparent 0 23px, rgba(0, 0, 0, 0.05) 23px 24px),
@@ -430,7 +441,8 @@
             justify-content: center;
             line-height: 1;
             letter-spacing: 0.04em;
-            padding: 0 2px;
+            padding: 0 6px;
+            box-sizing: border-box;
         }
 
         .preview-item.count-badge {
@@ -781,13 +793,16 @@
 
         .inspector {
             display: grid;
-            grid-template-rows: auto 1fr auto;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            min-height: 0;
         }
 
         .inspector-body {
             padding: 12px;
             display: grid;
             gap: 12px;
+            overflow: auto;
+            min-height: 0;
         }
 
         .section {
@@ -1041,7 +1056,7 @@
                         type: 'zone',
                         width: 420,
                         height: 280,
-                        note: 'Zona depan dekat gate.',
+                        note: 'Zona awal untuk area utama.',
                         areas: [
                             {
                                 id: 111,
@@ -1050,45 +1065,11 @@
                                 type: 'area',
                                 width: 260,
                                 height: 140,
-                                slotCols: 9,
-                                slotRows: 2,
+                                slotCols: 10,
+                                slotRows: 10,
+                                zoom: 1,
                                 slotStates: {},
-                                note: 'Susunan line-row pendek.'
-                            },
-                            {
-                                id: 112,
-                                name: 'Area A2',
-                                code: 'ZA-A2',
-                                type: 'area',
-                                width: 300,
-                                height: 160,
-                                slotCols: 7,
-                                slotRows: 6,
-                                slotStates: {},
-                                note: 'Susunan slot rapat.'
-                            }
-                        ]
-                    },
-                    {
-                        id: 12,
-                        name: 'Zone B',
-                        code: 'ZB',
-                        type: 'zone',
-                        width: 380,
-                        height: 240,
-                        note: 'Zona belakang untuk area staging.',
-                        areas: [
-                            {
-                                id: 121,
-                                name: 'Area B1',
-                                code: 'ZB-B1',
-                                type: 'area',
-                                width: 320,
-                                height: 180,
-                                slotCols: 8,
-                                slotRows: 3,
-                                slotStates: {},
-                                note: 'Staging block.'
+                                note: 'Area default 10 x 10.'
                             }
                         ]
                     }
@@ -1110,6 +1091,8 @@
         const zoomOutBtn = document.getElementById('zoomOutBtn');
         const zoomValuePill = document.getElementById('zoomValuePill');
         const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomControls = document.querySelector('.zoom-controls');
+        const previewWrap = document.querySelector('.preview-wrap');
         const enableAllBtn = document.getElementById('enableAllBtn');
         const disableAllBtn = document.getElementById('disableAllBtn');
         const invertBtn = document.getElementById('invertBtn');
@@ -1123,7 +1106,7 @@
 
         let previewScale = 1;
         let composerZoom = 1;
-        const ZOOM_MIN = 0.5;
+        const ZOOM_MIN = 0.25;
         const ZOOM_MAX = 1.5;
         const ZOOM_STEP = 0.1;
 
@@ -1152,6 +1135,12 @@
         zoomOutBtn.addEventListener('click', () => adjustComposerZoom(-ZOOM_STEP));
         zoomInBtn.addEventListener('click', () => adjustComposerZoom(ZOOM_STEP));
         zoomValuePill.addEventListener('click', () => setComposerZoom(1));
+        previewWrap.addEventListener('wheel', event => {
+            const area = getSelectedArea();
+            if (!event.ctrlKey || !area) return;
+            event.preventDefault();
+            adjustComposerZoom(event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP);
+        }, { passive: false });
 
         Object.values(fields).forEach(field => {
             field.addEventListener('input', syncSelectedFromForm);
@@ -1177,7 +1166,20 @@
             return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, value));
         }
 
+        function syncComposerZoomFromArea(area) {
+            if (!area) {
+                composerZoom = 1;
+                updateZoomControls(false);
+                return;
+            }
+
+            composerZoom = clampComposerZoom(Number(area.zoom) || 1);
+            area.zoom = composerZoom;
+            updateZoomControls(true);
+        }
+
         function updateZoomControls(enabled) {
+            zoomControls.style.display = enabled ? 'flex' : 'none';
             zoomOutBtn.disabled = !enabled;
             zoomInBtn.disabled = !enabled;
             zoomValuePill.style.cursor = enabled ? 'pointer' : 'default';
@@ -1187,7 +1189,10 @@
         }
 
         function setComposerZoom(value) {
+            const area = getSelectedArea();
+            if (!area) return;
             composerZoom = clampComposerZoom(value);
+            area.zoom = composerZoom;
             updateZoomControls(true);
             renderPreview();
         }
@@ -1275,8 +1280,9 @@
                 type: 'area',
                 width: 260,
                 height: 140,
-                slotCols: 9,
-                slotRows: 2,
+                slotCols: 10,
+                slotRows: 10,
+                zoom: 1,
                 slotStates: {},
                 note: ''
             };
@@ -1470,6 +1476,7 @@
         }
 
         function renderAreaComposer(area, zone) {
+            syncComposerZoomFromArea(area);
             previewScale = composerZoom;
             const states = ensureAreaSlotStates(area);
             const counts = countEnabledSlots(area);
@@ -1489,8 +1496,9 @@
             const shellH = Math.max(260, shellY + pad * 2 + colHeaderH + gridH + 34);
             const gridX = shellX + pad + rowHeaderW;
             const gridY = shellY + pad + colHeaderH;
-            const lineLabelY = gridY - 20;
-            const rowLabelX = shellX + pad;
+            const headerGap = 4;
+            const lineLabelY = gridY - cellH - headerGap;
+            const rowLabelX = gridX - rowHeaderW - headerGap;
 
             setPreviewCanvasSize(shellX + shellW + 28, shellY + shellH + 28);
 
@@ -1509,7 +1517,7 @@
                     x: gridX + (line - 1) * (cellW + gap),
                     y: lineLabelY,
                     w: cellW,
-                    h: 22,
+                    h: cellH,
                     label
                 });
             }
@@ -1520,7 +1528,7 @@
                     className: 'preview-item axis-label',
                     x: rowLabelX,
                     y: gridY + (row - 1) * (cellH + gap),
-                    w: rowHeaderW - 6,
+                    w: rowHeaderW,
                     h: cellH,
                     label
                 });
@@ -1553,7 +1561,6 @@
             areaCountPill.textContent = `${countAreas()} Area`;
             templatePill.textContent = `${cols} Line x ${rows} Row`;
             slotStatePill.textContent = `${counts.enabled} Enabled / ${counts.total} Slots`;
-            updateZoomControls(true);
             enableAllBtn.disabled = false;
             disableAllBtn.disabled = false;
             invertBtn.disabled = false;
@@ -1822,6 +1829,18 @@
             URL.revokeObjectURL(url);
         }
 
+        function normalizeAreaZooms(yard) {
+            if (!yard?.zones) return;
+            for (const zone of yard.zones) {
+                if (!zone?.areas) continue;
+                for (const area of zone.areas) {
+                    if (typeof area.zoom !== 'number' || Number.isNaN(area.zoom)) {
+                        area.zoom = 1;
+                    }
+                }
+            }
+        }
+
         async function loadJson(event) {
             const file = event.target.files?.[0];
             if (!file) return;
@@ -1829,6 +1848,7 @@
             const data = JSON.parse(text);
             if (data?.yard) {
                 state.yard = data.yard;
+                normalizeAreaZooms(state.yard);
                 state.selected = { type: 'yard', zoneId: null, areaId: null };
             }
             render();
