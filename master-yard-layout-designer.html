@@ -1836,9 +1836,15 @@
                         event.preventDefault();
                         event.stopPropagation();
                         const lineKeysNow = getAreaLineSlotKeys(area, line);
-                        selectAreaLine(area, line, false);
-                        render(false);
-                        openLineRowMenu(area, { x: event.clientX, y: event.clientY }, lineKeysNow);
+                        const currentSelection = getSelectedSlotKeys(area);
+                        if (currentSelection.length === 0) {
+                            selectAreaLine(area, line, false);
+                            render(false);
+                            openLineRowMenu(area, { x: event.clientX, y: event.clientY }, lineKeysNow);
+                            return;
+                        }
+
+                        openLineRowMenu(area, { x: event.clientX, y: event.clientY }, currentSelection);
                     }
                 });
             }
@@ -1864,9 +1870,15 @@
                         event.preventDefault();
                         event.stopPropagation();
                         const rowKeysNow = getAreaRowSlotKeys(area, row);
-                        selectAreaRow(area, row, false);
-                        render(false);
-                        openLineRowMenu(area, { x: event.clientX, y: event.clientY }, rowKeysNow);
+                        const currentSelection = getSelectedSlotKeys(area);
+                        if (currentSelection.length === 0) {
+                            selectAreaRow(area, row, false);
+                            render(false);
+                            openLineRowMenu(area, { x: event.clientX, y: event.clientY }, rowKeysNow);
+                            return;
+                        }
+
+                        openLineRowMenu(area, { x: event.clientX, y: event.clientY }, currentSelection);
                     }
                 });
             }
