@@ -451,6 +451,17 @@
             box-sizing: border-box;
         }
 
+        .preview-item.axis-label.clickable {
+            cursor: pointer;
+        }
+
+        .preview-item.axis-label.selected {
+            background: rgba(141, 123, 42, 0.12);
+            border-color: rgba(141, 123, 42, 0.35);
+            color: #2b2416;
+            font-weight: 900;
+        }
+
         .preview-item.count-badge {
             border: 1px solid rgba(0, 0, 0, 0.12);
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 242, 233, 0.92));
@@ -1341,6 +1352,51 @@
             setAreaSelectedSlots(area, [key]);
         }
 
+        function getAreaLineSlotKeys(area, lineIndex) {
+            const cols = Math.max(1, Number(area.slotCols) || 0);
+            const keys = [];
+            for (let row = 1; row <= Math.max(1, Number(area.slotRows) || 0); row++) {
+                const key = getAreaSlotKey(lineIndex, row);
+                if (lineIndex >= 1 && lineIndex <= cols) {
+                    keys.push(key);
+                }
+            }
+            return keys;
+        }
+
+        function getAreaRowSlotKeys(area, rowIndex) {
+            const cols = Math.max(1, Number(area.slotCols) || 0);
+            const keys = [];
+            for (let line = 1; line <= cols; line++) {
+                keys.push(getAreaSlotKey(line, rowIndex));
+            }
+            return keys;
+        }
+
+        function selectAreaSlots(area, keys, additive = false) {
+            const next = Array.isArray(keys) ? keys : [];
+            if (!next.length) {
+                clearAreaSelectedSlots(area);
+                return;
+            }
+
+            if (additive) {
+                const current = ensureAreaSelectedSlots(area);
+                setAreaSelectedSlots(area, [...current, ...next]);
+                return;
+            }
+
+            setAreaSelectedSlots(area, next);
+        }
+
+        function selectAreaLine(area, lineIndex, additive = false) {
+            selectAreaSlots(area, getAreaLineSlotKeys(area, lineIndex), additive);
+        }
+
+        function selectAreaRow(area, rowIndex, additive = false) {
+            selectAreaSlots(area, getAreaRowSlotKeys(area, rowIndex), additive);
+        }
+
         function applySelectionState(area, enabled, targetKeys = null) {
             const states = ensureAreaSlotStates(area);
             const selected = Array.isArray(targetKeys) && targetKeys.length > 0
@@ -1709,25 +1765,41 @@
             });
             for (let line = 1; line <= cols; line++) {
                 const label = String(line).padStart(3, '0');
+                const lineKeys = getAreaLineSlotKeys(area, line);
+                const lineSelected = lineKeys.length > 0 && lineKeys.every(key => isSlotSelected(area, key));
                 appendPreviewItem({
-                    className: 'preview-item axis-label',
+                    className: `preview-item axis-label clickable${lineSelected ? ' selected' : ''}`,
                     x: gridX + (line - 1) * (cellW + gap),
                     y: lineLabelY,
                     w: cellW,
                     h: cellH,
-                    label
+                    label,
+                    title: `Select line ${label}`,
+                    onClick: event => {
+                        event.stopPropagation();
+                        selectAreaLine(area, line, Boolean(event.ctrlKey || event.metaKey));
+                        render(false);
+                    }
                 });
             }
 
             for (let row = 1; row <= rows; row++) {
                 const label = String(row).padStart(3, '0');
+                const rowKeys = getAreaRowSlotKeys(area, row);
+                const rowSelected = rowKeys.length > 0 && rowKeys.every(key => isSlotSelected(area, key));
                 appendPreviewItem({
-                    className: 'preview-item axis-label',
+                    className: `preview-item axis-label clickable${rowSelected ? ' selected' : ''}`,
                     x: rowLabelX,
                     y: gridY + (row - 1) * (cellH + gap),
                     w: rowHeaderW,
                     h: cellH,
-                    label
+                    label,
+                    title: `Select row ${label}`,
+                    onClick: event => {
+                        event.stopPropagation();
+                        selectAreaRow(area, row, Boolean(event.ctrlKey || event.metaKey));
+                        render(false);
+                    }
                 });
             }
 
