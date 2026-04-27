@@ -407,6 +407,12 @@
             cursor: pointer;
         }
 
+        .preview-item.slot.selected {
+            border-width: 3px;
+            border-color: #8d7b2a;
+            z-index: 4;
+        }
+
         .preview-item.composer-shell {
             background: rgba(255, 255, 255, 0.96);
             border: 1px solid rgba(0, 0, 0, 0.12);
@@ -746,6 +752,39 @@
 
         .preview-item.gate {
             background: #ffca2c;
+        }
+
+        .slot-menu {
+            position: fixed;
+            z-index: 2000;
+            min-width: 170px;
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 18px 38px rgba(32, 26, 18, 0.18);
+            display: grid;
+            gap: 4px;
+        }
+
+        .slot-menu button {
+            height: 32px;
+            border: 1px solid #d7ccb6;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #ffffff, #f4ecde);
+            color: #232323;
+            text-align: left;
+            padding: 0 10px;
+            cursor: pointer;
+        }
+
+        .slot-menu button:hover {
+            background: linear-gradient(180deg, #fffdf8, #efe3cb);
+        }
+
+        .slot-menu .danger {
+            background: linear-gradient(180deg, #fff, #f8ecea);
+            border-color: #e0c0bc;
         }
 
         .preview-label {
@@ -1109,6 +1148,31 @@
         const ZOOM_MIN = 0.25;
         const ZOOM_MAX = 1.5;
         const ZOOM_STEP = 0.1;
+        let slotMenuEl = null;
+
+        previewEl.addEventListener('click', event => {
+            if (state.selected.type !== 'area') {
+                return;
+            }
+
+            const target = event.target;
+            const isSlot = target instanceof HTMLElement && target.closest('.preview-item.slot');
+            const isMenu = target instanceof HTMLElement && target.closest('.slot-menu');
+            if (isSlot || isMenu) {
+                return;
+            }
+
+            const item = target instanceof HTMLElement ? target.closest('.preview-item') : null;
+            if (item && !item.classList.contains('composer-shell')) {
+                return;
+            }
+
+            const area = getSelectedArea();
+            if (!area) return;
+            clearAreaSelectedSlots(area);
+            closeSlotMenu();
+            render(false);
+        });
 
         const fields = {
             yardName: document.getElementById('yardName'),
@@ -1141,6 +1205,13 @@
             event.preventDefault();
             adjustComposerZoom(event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP);
         }, { passive: false });
+        previewWrap.addEventListener('scroll', closeSlotMenu);
+        document.addEventListener('click', closeSlotMenu);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeSlotMenu();
+            }
+        });
 
         Object.values(fields).forEach(field => {
             field.addEventListener('input', syncSelectedFromForm);
@@ -1222,17 +1293,134 @@
             return next;
         }
 
+        function ensureAreaSelectedSlots(area) {
+            const previous = Array.isArray(area.selectedSlotKeys) ? area.selectedSlotKeys : [];
+            const slotStates = ensureAreaSlotStates(area);
+            const validKeys = new Set(Object.keys(slotStates));
+            const next = previous.filter(key => validKeys.has(key));
+            area.selectedSlotKeys = next;
+            return next;
+        }
+
+        function isSlotSelected(area, key) {
+            return ensureAreaSelectedSlots(area).includes(key);
+        }
+
+        function getSelectedSlotKeys(area) {
+            return ensureAreaSelectedSlots(area).slice();
+        }
+
+        function setAreaSelectedSlots(area, keys) {
+            const slotStates = ensureAreaSlotStates(area);
+            const validKeys = new Set(Object.keys(slotStates));
+            const unique = [];
+            for (const key of keys) {
+                if (validKeys.has(key) && !unique.includes(key)) {
+                    unique.push(key);
+                }
+            }
+            area.selectedSlotKeys = unique;
+            return unique;
+        }
+
+        function clearAreaSelectedSlots(area) {
+            area.selectedSlotKeys = [];
+        }
+
+        function selectAreaSlot(area, key, additive = false) {
+            const current = ensureAreaSelectedSlots(area);
+            if (additive) {
+                if (current.includes(key)) {
+                    setAreaSelectedSlots(area, current.filter(entry => entry !== key));
+                } else {
+                    setAreaSelectedSlots(area, [...current, key]);
+                }
+                return;
+            }
+
+            setAreaSelectedSlots(area, [key]);
+        }
+
+        function applySelectionState(area, enabled, targetKeys = null) {
+            const states = ensureAreaSlotStates(area);
+            const selected = Array.isArray(targetKeys) && targetKeys.length > 0
+                ? targetKeys
+                : ensureAreaSelectedSlots(area);
+            for (const key of selected) {
+                if (key in states) {
+                    states[key] = enabled;
+                }
+            }
+            render(false);
+        }
+
+        function invertSelectedSlots(area, targetKeys = null) {
+            const states = ensureAreaSlotStates(area);
+            const selected = Array.isArray(targetKeys) && targetKeys.length > 0
+                ? targetKeys
+                : ensureAreaSelectedSlots(area);
+            for (const key of selected) {
+                if (key in states) {
+                    states[key] = !states[key];
+                }
+            }
+            render(false);
+        }
+
+        function closeSlotMenu() {
+            if (slotMenuEl) {
+                slotMenuEl.remove();
+                slotMenuEl = null;
+            }
+        }
+
+        function openSlotMenu(area, anchor, targetKeys = null) {
+            closeSlotMenu();
+
+            const menu = document.createElement('div');
+            menu.className = 'slot-menu';
+            menu.style.left = `${Math.min(anchor.x, window.innerWidth - 190)}px`;
+            menu.style.top = `${Math.min(anchor.y, window.innerHeight - 180)}px`;
+
+            const menuSelection = Array.isArray(targetKeys) && targetKeys.length > 0
+                ? targetKeys.slice()
+                : getSelectedSlotKeys(area);
+            const selectedCount = menuSelection.length;
+            menu.innerHTML = `
+                <button type="button" data-action="enable">Enable ${selectedCount > 1 ? `(${selectedCount})` : 'Selected'}</button>
+                <button type="button" data-action="disable">Disable ${selectedCount > 1 ? `(${selectedCount})` : 'Selected'}</button>
+                <button type="button" data-action="invert">Invert Selected</button>
+                <button type="button" data-action="clear" class="danger">Clear Selection</button>
+            `;
+
+            menu.addEventListener('click', event => event.stopPropagation());
+            menu.querySelector('[data-action="enable"]').addEventListener('click', () => {
+                applySelectionState(area, true, menuSelection);
+                closeSlotMenu();
+            });
+            menu.querySelector('[data-action="disable"]').addEventListener('click', () => {
+                applySelectionState(area, false, menuSelection);
+                closeSlotMenu();
+            });
+            menu.querySelector('[data-action="invert"]').addEventListener('click', () => {
+                invertSelectedSlots(area, menuSelection);
+                closeSlotMenu();
+            });
+            menu.querySelector('[data-action="clear"]').addEventListener('click', () => {
+                clearAreaSelectedSlots(area);
+                render(false);
+                closeSlotMenu();
+            });
+
+            document.body.appendChild(menu);
+            slotMenuEl = menu;
+        }
+
         function countEnabledSlots(area) {
             const states = ensureAreaSlotStates(area);
             const total = Object.keys(states).length;
             const enabled = Object.values(states).filter(Boolean).length;
             return { total, enabled, disabled: total - enabled };
-        }
-
-        function toggleAreaSlot(area, key) {
-            const states = ensureAreaSlotStates(area);
-            states[key] = !states[key];
-            render(false);
         }
 
         function setAllSlots(enabled) {
@@ -1284,6 +1472,7 @@
                 slotRows: 10,
                 zoom: 1,
                 slotStates: {},
+                selectedSlotKeys: [],
                 note: ''
             };
 
@@ -1464,6 +1653,14 @@
                 div.addEventListener('click', item.onClick);
             }
 
+            if (item.onDblClick) {
+                div.addEventListener('dblclick', item.onDblClick);
+            }
+
+            if (item.onContextMenu) {
+                div.addEventListener('contextmenu', item.onContextMenu);
+            }
+
             previewEl.appendChild(div);
             return div;
         }
@@ -1538,16 +1735,47 @@
                 for (let row = 1; row <= rows; row++) {
                     const key = getAreaSlotKey(line, row);
                     const enabled = states[key] !== false;
+                    const selected = isSlotSelected(area, key);
                     const title = `Line ${String(line).padStart(3, '0')} / Row ${String(row).padStart(3, '0')} - ${enabled ? 'Enabled' : 'Disabled'}`;
+                    let clickTimer = null;
                     appendPreviewItem({
-                        className: `preview-item slot ${enabled ? 'enabled' : 'disabled'}`,
+                        className: `preview-item slot ${enabled ? 'enabled' : 'disabled'}${selected ? ' selected' : ''}`,
                         x: gridX + (line - 1) * (cellW + gap),
                         y: gridY + (row - 1) * (cellH + gap),
                         w: cellW,
                         h: cellH,
                         html: '',
                         title,
-                        onClick: () => toggleAreaSlot(area, key)
+                        onClick: event => {
+                            event.stopPropagation();
+                            if (clickTimer) {
+                                clearTimeout(clickTimer);
+                            }
+                            clickTimer = window.setTimeout(() => {
+                                selectAreaSlot(area, key, Boolean(event.ctrlKey || event.metaKey));
+                                render(false);
+                                clickTimer = null;
+                            }, 280);
+                        },
+                        onContextMenu: event => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            if (clickTimer) {
+                                clearTimeout(clickTimer);
+                                clickTimer = null;
+                            }
+
+                            const selected = getSelectedSlotKeys(area);
+                            if (!selected.includes(key) || selected.length === 0) {
+                                selectAreaSlot(area, key, false);
+                                render(false);
+                            }
+
+                            openSlotMenu(area, {
+                                x: event.clientX,
+                                y: event.clientY
+                            }, getSelectedSlotKeys(area));
+                        }
                     });
                 }
             }
@@ -1694,6 +1922,7 @@
         }
 
         function renderPreview() {
+            closeSlotMenu();
             const zone = getSelectedZone();
             const area = getSelectedArea();
 
@@ -1836,6 +2065,9 @@
                 for (const area of zone.areas) {
                     if (typeof area.zoom !== 'number' || Number.isNaN(area.zoom)) {
                         area.zoom = 1;
+                    }
+                    if (!Array.isArray(area.selectedSlotKeys)) {
+                        area.selectedSlotKeys = [];
                     }
                 }
             }
