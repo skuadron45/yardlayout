@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yard Composer Designer</title>
+    <style>
+        :root {
+            --bg: #f4f1e8;
+            --paper: #ffffff;
+            --ink: #1f1f1f;
+            --muted: #6d6a62;
+            --line: #d7d2c7;
+            --grid: rgba(0, 0, 0, 0.07);
+            --grid-strong: rgba(0, 0, 0, 0.13);
+            --accent: #ffea00;
+            --cyan: #34e7f3;
+            --panel: #faf8f1;
+            --shadow: 0 16px 34px rgba(41, 35, 24, 0.12);
+            --zone: #d9d9d4;
+            --area: #cfcfc9;
+            --slot: #edf0ea;
+            --gate: #ffc82c;
+            --handle: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 40%),
+                linear-gradient(180deg, #f9f7f0 0%, var(--bg) 100%);
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.72));
+            backdrop-filter: blur(8px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .brand .highlight {
+            padding: 2px 8px 4px;
+            background: var(--accent);
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+            line-height: 1;
+        }
+
+        .brand .subtitle {
+            color: #2c2c2c;
+            font-size: 16px;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            height: 34px;
+            border: 1px solid #c9c1b1;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #ffffff, #f1ede4);
+            color: #262626;
+            padding: 0 12px;
+            cursor: pointer;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+        }
+
+        .btn:hover {
+            border-color: #aaa18d;
+        }
+
+        .btn.primary {
+            background: linear-gradient(180deg, #fff4a7, #ffe860);
+            border-color: #d3bf2a;
+            font-weight: 700;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 242px minmax(700px, 1fr) 320px;
+            gap: 14px;
+            padding: 14px;
+            min-height: 0;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .panel-head {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(246,243,234,0.88));
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #27241d;
+        }
+
+        .panel-subtitle {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .palette {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .palette-list {
+            padding: 14px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .tool-card {
+            border: 1px solid #d8d1c2;
+            background: linear-gradient(180deg, #ffffff, #f3efe6);
+            border-radius: 14px;
+            padding: 12px;
+            cursor: pointer;
+            display: grid;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .tool-card.active {
+            border-color: #bfae1a;
+            box-shadow: 0 0 0 2px rgba(255, 234, 0, 0.25);
+        }
+
+        .tool-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .tool-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 24px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #1d1d1d;
+            background: var(--accent);
+        }
+
+        .tool-chip.zone { background: #bdbdb7; }
+        .tool-chip.area { background: #d9d4c7; }
+        .tool-chip.slot { background: #dce3ea; }
+        .tool-chip.gate { background: #ffc82c; }
+        .tool-chip.note { background: #9ec6ff; }
+
+        .tool-name {
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .tool-desc {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .tool-help {
+            padding: 0 14px 14px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .stage-panel {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            min-width: 0;
+        }
+
+        .stage-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            background: linear-gradient(180deg, #fffefb, #f4efe5);
+        }
+
+        .stage-toolbar-left,
+        .stage-toolbar-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #302e29;
+            user-select: none;
+        }
+
+        .toggle input {
+            width: 16px;
+            height: 16px;
+        }
+
+        .stage-wrap {
+            position: relative;
+            overflow: auto;
+            background:
+                linear-gradient(0deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02)),
+                repeating-linear-gradient(0deg, transparent 0 23px, rgba(0,0,0,0.035) 23px 24px),
+                repeating-linear-gradient(90deg, transparent 0 23px, rgba(0,0,0,0.035) 23px 24px),
+                #f8f5ef;
+        }
+
+        .stage-shell {
+            position: relative;
+            width: 1560px;
+            height: 920px;
+            margin: 28px;
+            background: rgba(255, 255, 255, 0.36);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+        }
+
+        .ruler-top,
+        .ruler-left {
+            position: absolute;
+            color: #2c2c2c;
+            font-size: 10px;
+            line-height: 1;
+            pointer-events: none;
+            opacity: 0.95;
+        }
+
+        .ruler-top {
+            left: 92px;
+            top: 10px;
+            right: 24px;
+            display: grid;
+            grid-template-columns: repeat(35, 1fr);
+            gap: 0;
+        }
+
+        .ruler-top span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.22);
+            border-left: 1px solid rgba(0, 0, 0, 0.08);
+            font-weight: 700;
+        }
+
+        .ruler-left {
+            left: 10px;
+            top: 92px;
+            bottom: 24px;
+            width: 54px;
+            display: grid;
+            grid-template-rows: repeat(25, 1fr);
+        }
+
+        .ruler-left span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            border-right: 1px solid rgba(0, 0, 0, 0.22);
+            background: rgba(255, 255, 255, 0.18);
+            font-weight: 700;
+        }
+
+        .canvas-hint {
+            position: absolute;
+            left: 92px;
+            top: 30px;
+            font-size: 13px;
+            color: #3c3a34;
+        }
+
+        .canvas {
+            position: absolute;
+            left: 92px;
+            top: 92px;
+            width: 1452px;
+            height: 804px;
+            background:
+                linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)),
+                repeating-linear-gradient(0deg, transparent 0 23px, var(--grid) 23px 24px),
+                repeating-linear-gradient(90deg, transparent 0 23px, var(--grid) 23px 24px),
+                #fdfcf9;
+            border: 1px solid rgba(0, 0, 0, 0.16);
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .canvas::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, transparent 0 119px, rgba(0, 0, 0, 0.11) 119px 120px, transparent 120px 100%),
+                linear-gradient(180deg, transparent 0 119px, rgba(0, 0, 0, 0.11) 119px 120px, transparent 120px 100%);
+            pointer-events: none;
+            opacity: 0.65;
+        }
+
+        .canvas.grid-off {
+            background: #fdfcf9;
+        }
+
+        .canvas.grid-off::before {
+            opacity: 0.35;
+        }
+
+        .selection-ghost {
+            position: absolute;
+            pointer-events: none;
+            border: 2px dashed rgba(24, 24, 24, 0.25);
+            display: none;
+        }
+
+        .yard-item {
+            position: absolute;
+            border: 1px solid rgba(0, 0, 0, 0.55);
+            transform-origin: center center;
+            user-select: none;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            line-height: 1.1;
+            text-align: center;
+        }
+
+        .yard-item.selected {
+            outline: 2px solid rgba(0, 0, 0, 0.55);
+            outline-offset: 1px;
+        }
+
+        .yard-item.zone {
+            background: rgba(177, 177, 170, 0.9);
+        }
+
+        .yard-item.area {
+            background: rgba(210, 208, 200, 0.95);
+        }
+
+        .yard-item.slot {
+            background: rgba(235, 240, 234, 0.95);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        .yard-item.gate {
+            background: #ffcc33;
+            border-color: #986d00;
+            font-weight: 800;
+        }
+
+        .yard-item.note {
+            background: #cae0ff;
+            border-color: #5f84c6;
+            padding: 4px;
+            justify-content: flex-start;
+            align-items: flex-start;
+            text-align: left;
+            white-space: pre-line;
+        }
+
+        .yard-item.boundary {
+            background: rgba(255, 255, 255, 0.02);
+            border-style: dashed;
+            border-width: 2px;
+        }
+
+        .item-label {
+            padding: 0 6px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: -7px;
+            bottom: -7px;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #111827;
+            background: #ffffff;
+            border-radius: 4px;
+            cursor: nwse-resize;
+            display: none;
+        }
+
+        .yard-item.selected .resize-handle {
+            display: block;
+        }
+
+        .decor-dot {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #ffc524;
+            border: 2px solid #7d6200;
+            box-shadow: 0 2px 0 rgba(255,255,255,0.65);
+            pointer-events: none;
+        }
+
+        .inspector {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inspector-body {
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .section {
+            border: 1px solid #ddd4c3;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #ffffff, #f5f1e8);
+            padding: 12px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .field-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #3a362f;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            min-height: 34px;
+            border: 1px solid #cfc7b6;
+            border-radius: 10px;
+            background: #fff;
+            padding: 7px 10px;
+            color: #232323;
+        }
+
+        .field textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mini-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #312f2a;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .status strong {
+            color: #2b2925;
+        }
+
+        .empty {
+            padding: 14px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .footer-note {
+            padding: 0 16px 16px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1360px) {
+            .workspace {
+                grid-template-columns: 220px minmax(640px, 1fr) 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <span class="highlight">Yard Composer</span>
+                <span class="subtitle">*Follow existing rule based on model</span>
+            </div>
+            <div class="top-actions">
+                <button class="btn primary" id="newBtn">New</button>
+                <button class="btn" id="saveBtn">Save JSON</button>
+                <button class="btn" id="loadBtn">Load JSON</button>
+                <button class="btn" id="gridBtn">Toggle Grid</button>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <aside class="panel palette">
+                <div class="panel-head">
+                    <div class="panel-title">Composer Tools</div>
+                    <div class="panel-subtitle">Klik tool lalu klik canvas untuk menambahkan elemen.</div>
+                </div>
+                <div class="palette-list" id="toolList"></div>
+                <div class="tool-help">
+                    Gunakan canvas untuk menyusun <strong>boundary</strong>, <strong>zone</strong>, <strong>area</strong>, <strong>slot</strong>, dan komponen pendukung lain.
+                    Setiap elemen bisa dipindah dan diubah properti dasarnya.
+                </div>
+            </aside>
+
+            <main class="panel stage-panel">
+                <div class="stage-toolbar">
+                    <div class="stage-toolbar-left">
+                        <label class="toggle"><input type="checkbox" id="snapToggle" checked> Snap to grid</label>
+                        <label class="toggle"><input type="checkbox" id="labelsToggle" checked> Show labels</label>
+                        <label class="toggle"><input type="checkbox" id="assistToggle" checked> Show guides</label>
+                    </div>
+                    <div class="stage-toolbar-right">
+                        <span class="pill">Grid <strong>24px</strong></span>
+                        <span class="pill">Zoom <strong>100%</strong></span>
+                    </div>
+                </div>
+                <div class="stage-wrap" id="stageWrap">
+                    <div class="stage-shell">
+                        <div class="canvas-hint">Build the yard using the rule-based composer model</div>
+                        <div class="ruler-top" id="rulerTop"></div>
+                        <div class="ruler-left" id="rulerLeft"></div>
+                        <div class="canvas" id="canvas">
+                            <div class="decor-dot" style="left: 6px; top: 10px;"></div>
+                            <div class="decor-dot" style="right: 6px; top: 106px;"></div>
+                            <div class="decor-dot" style="right: 14px; bottom: 12px;"></div>
+                            <div id="itemLayer"></div>
+                            <div class="selection-ghost" id="selectionGhost"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <aside class="panel inspector">
+                <div class="panel-head">
+                    <div class="panel-title">Inspector</div>
+                    <div class="panel-subtitle">Edit the selected element here.</div>
+                </div>
+                <div class="inspector-body" id="inspectorBody">
+                    <div class="section">
+                        <div class="section-title">Selection</div>
+                        <div class="empty" id="emptyState">
+                            Belum ada elemen yang dipilih. Klik elemen di canvas atau tambahkan dari panel kiri.
+                        </div>
+                        <div id="inspectorForm" class="hidden">
+                            <div class="field-grid">
+                                <div class="field">
+                                    <label for="nameInput">Name</label>
+                                    <input id="nameInput" type="text">
+                                </div>
+                                <div class="row-2">
+                                    <div class="field">
+                                        <label for="typeInput">Type</label>
+                                        <select id="typeInput"></select>
+                                    </div>
+                                    <div class="field">
+                                        <label for="colorInput">Fill</label>
+                                        <input id="colorInput" type="color">
+                                    </div>
+                                </div>
+                                <div class="row-2">
+                                    <div class="field">
+                                        <label for="xInput">X</label>
+                                        <input id="xInput" type="number">
+                                    </div>
+                                    <div class="field">
+                                        <label for="yInput">Y</label>
+                                        <input id="yInput" type="number">
+                                    </div>
+                                </div>
+                                <div class="row-2">
+                                    <div class="field">
+                                        <label for="wInput">Width</label>
+                                        <input id="wInput" type="number" min="1">
+                                    </div>
+                                    <div class="field">
+                                        <label for="hInput">Height</label>
+                                        <input id="hInput" type="number" min="1">
+                                    </div>
+                                </div>
+                                <div class="row-2">
+                                    <div class="field">
+                                        <label for="rotationInput">Rotation</label>
+                                        <input id="rotationInput" type="number" min="-360" max="360">
+                                    </div>
+                                    <div class="field">
+                                        <label for="zInput">Z Index</label>
+                                        <input id="zInput" type="number">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label for="textInput">Label / Notes</label>
+                                    <textarea id="textInput" placeholder="Type a label or notes here"></textarea>
+                                </div>
+                                <div class="mini-actions">
+                                    <button class="btn" id="duplicateBtn">Duplicate</button>
+                                    <button class="btn" id="frontBtn">Bring Front</button>
+                                    <button class="btn" id="backBtn">Send Back</button>
+                                    <button class="btn" id="deleteBtn">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Project</div>
+                        <div class="field-grid">
+                            <div class="field">
+                                <label for="projectNameInput">Layout name</label>
+                                <input id="projectNameInput" type="text" value="Main Yard Composer">
+                            </div>
+                            <div class="row-2">
+                                <div class="field">
+                                    <label for="canvasWidthInput">Canvas width</label>
+                                    <input id="canvasWidthInput" type="number" value="1452">
+                                </div>
+                                <div class="field">
+                                    <label for="canvasHeightInput">Canvas height</label>
+                                    <input id="canvasHeightInput" type="number" value="804">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Model Tip</div>
+                        <div class="status">
+                            <span>Yard</span><strong>Container for the whole layout</strong>
+                        </div>
+                        <div class="status">
+                            <span>Zone</span><strong>Functional cluster</strong>
+                        </div>
+                        <div class="status">
+                            <span>Area</span><strong>Subdivision inside zone</strong>
+                        </div>
+                        <div class="status">
+                            <span>Slot</span><strong>Individual position</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-note">
+                    Data disimpan sebagai JSON agar mudah dipakai ulang sebagai rule base untuk model layout berikutnya.
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="application/json" class="hidden">
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const itemLayer = document.getElementById('itemLayer');
+        const rulerTop = document.getElementById('rulerTop');
+        const rulerLeft = document.getElementById('rulerLeft');
+        const selectionGhost = document.getElementById('selectionGhost');
+        const toolList = document.getElementById('toolList');
+        const fileInput = document.getElementById('fileInput');
+        const emptyState = document.getElementById('emptyState');
+        const inspectorForm = document.getElementById('inspectorForm');
+
+        const snapToggle = document.getElementById('snapToggle');
+        const labelsToggle = document.getElementById('labelsToggle');
+        const assistToggle = document.getElementById('assistToggle');
+        const gridBtn = document.getElementById('gridBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const newBtn = document.getElementById('newBtn');
+        const duplicateBtn = document.getElementById('duplicateBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const frontBtn = document.getElementById('frontBtn');
+        const backBtn = document.getElementById('backBtn');
+
+        const formFields = {
+            name: document.getElementById('nameInput'),
+            type: document.getElementById('typeInput'),
+            color: document.getElementById('colorInput'),
+            x: document.getElementById('xInput'),
+            y: document.getElementById('yInput'),
+            w: document.getElementById('wInput'),
+            h: document.getElementById('hInput'),
+            rotation: document.getElementById('rotationInput'),
+            z: document.getElementById('zInput'),
+            text: document.getElementById('textInput'),
+            projectName: document.getElementById('projectNameInput'),
+            canvasWidth: document.getElementById('canvasWidthInput'),
+            canvasHeight: document.getElementById('canvasHeightInput')
+        };
+
+        const GRID = 24;
+        const TOOL_DEFS = [
+            {
+                type: 'boundary',
+                label: 'Boundary',
+                chip: 'boundary',
+                description: 'Frame besar area yard. Bisa jadi batas utama layout.'
+            },
+            {
+                type: 'zone',
+                label: 'Zone',
+                chip: 'zone',
+                description: 'Cluster fungsi besar seperti loading, parking, atau staging.'
+            },
+            {
+                type: 'area',
+                label: 'Area',
+                chip: 'area',
+                description: 'Sub-bagian yang lebih spesifik di dalam zone.'
+            },
+            {
+                type: 'slot',
+                label: 'Slot',
+                chip: 'slot',
+                description: 'Unit terkecil, biasanya posisi parkir atau storage position.'
+            },
+            {
+                type: 'gate',
+                label: 'Gate',
+                chip: 'gate',
+                description: 'Penanda akses masuk atau keluar.'
+            },
+            {
+                type: 'note',
+                label: 'Note',
+                chip: 'note',
+                description: 'Label atau catatan penjelas di atas canvas.'
+            }
+        ];
+
+        const DEFAULTS = {
+            boundary: { w: 1120, h: 560, color: '#ffffff', rotation: 0, text: 'Main Boundary' },
+            zone: { w: 380, h: 210, color: '#d8d8d3', rotation: 0, text: 'Zone A' },
+            area: { w: 260, h: 130, color: '#cfcac1', rotation: 0, text: 'Area 01' },
+            slot: { w: 36, h: 18, color: '#edf0ea', rotation: 0, text: 'TC 0001' },
+            gate: { w: 72, h: 34, color: '#ffc82c', rotation: 0, text: 'GATE' },
+            note: { w: 140, h: 56, color: '#c9e0ff', rotation: 0, text: 'Note' }
+        };
+
+        const state = {
+            projectName: 'Main Yard Composer',
+            snap: true,
+            gridVisible: true,
+            showLabels: true,
+            showGuides: true,
+            tool: 'zone',
+            selectedId: null,
+            items: [
+                {
+                    id: 1,
+                    type: 'boundary',
+                    name: 'Boundary 01',
+                    x: 180,
+                    y: 96,
+                    w: 960,
+                    h: 520,
+                    rotation: 0,
+                    color: '#ffffff',
+                    text: 'Main Yard'
+                },
+                {
+                    id: 2,
+                    type: 'zone',
+                    name: 'Zone A',
+                    x: 220,
+                    y: 132,
+                    w: 430,
+                    h: 220,
+                    rotation: 0,
+                    color: '#d9d9d4',
+                    text: 'Zone A'
+                },
+                {
+                    id: 3,
+                    type: 'area',
+                    name: 'Area A1',
+                    x: 680,
+                    y: 132,
+                    w: 260,
+                    h: 180,
+                    rotation: 0,
+                    color: '#cfc9be',
+                    text: 'Area A1'
+                },
+                {
+                    id: 4,
+                    type: 'slot',
+                    name: 'Slot A-01',
+                    x: 248,
+                    y: 380,
+                    w: 34,
+                    h: 18,
+                    rotation: 0,
+                    color: '#edf0ea',
+                    text: 'A-01'
+                }
+            ],
+            nextId: 5
+        };
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function snap(value) {
+            return state.snap ? Math.round(value / GRID) * GRID : value;
+        }
+
+        function createRulers() {
+            rulerTop.innerHTML = '';
+            rulerLeft.innerHTML = '';
+            for (let i = 1; i <= 35; i++) {
+                const span = document.createElement('span');
+                span.textContent = String(i).padStart(3, '0');
+                rulerTop.appendChild(span);
+            }
+            for (let i = 1; i <= 25; i++) {
+                const span = document.createElement('span');
+                span.textContent = String(i).padStart(3, '0');
+                rulerLeft.appendChild(span);
+            }
+        }
+
+        function createToolList() {
+            toolList.innerHTML = '';
+            for (const tool of TOOL_DEFS) {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'tool-card' + (state.tool === tool.type ? ' active' : '');
+                card.dataset.tool = tool.type;
+                card.innerHTML = `
+                    <div class="tool-card-top">
+                        <div class="tool-name">${tool.label}</div>
+                        <span class="tool-chip ${tool.chip}">${tool.label}</span>
+                    </div>
+                    <div class="tool-desc">${tool.description}</div>
+                `;
+                card.addEventListener('click', () => {
+                    state.tool = tool.type;
+                    createToolList();
+                });
+                toolList.appendChild(card);
+            }
+        }
+
+        function getItem(id) {
+            return state.items.find(item => item.id === id);
+        }
+
+        function getSelectedItem() {
+            return getItem(state.selectedId);
+        }
+
+        function createItem(type, x, y) {
+            const defaults = DEFAULTS[type];
+            const item = {
+                id: state.nextId++,
+                type,
+                name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${String(state.nextId - 1).padStart(2, '0')}`,
+                x,
+                y,
+                w: defaults.w,
+                h: defaults.h,
+                rotation: defaults.rotation,
+                color: defaults.color,
+                text: defaults.text
+            };
+
+            if (type === 'slot') {
+                item.text = `S-${String(state.nextId - 1).padStart(2, '0')}`;
+            }
+
+            if (type === 'boundary') {
+                item.x = 160;
+                item.y = 100;
+            }
+
+            state.items.push(item);
+            state.selectedId = item.id;
+            render();
+        }
+
+        function duplicateSelected() {
+            const item = getSelectedItem();
+            if (!item) return;
+            const copy = {
+                ...JSON.parse(JSON.stringify(item)),
+                id: state.nextId++,
+                name: `${item.name} Copy`,
+                x: item.x + GRID * 2,
+                y: item.y + GRID * 2
+            };
+            state.items.push(copy);
+            state.selectedId = copy.id;
+            render();
+        }
+
+        function deleteSelected() {
+            if (!state.selectedId) return;
+            state.items = state.items.filter(item => item.id !== state.selectedId);
+            state.selectedId = state.items.at(-1)?.id ?? null;
+            render();
+        }
+
+        function bringToFront() {
+            const item = getSelectedItem();
+            if (!item) return;
+            const maxZ = Math.max(0, ...state.items.map(entry => entry.z || 0));
+            item.z = maxZ + 1;
+            render();
+        }
+
+        function sendToBack() {
+            const item = getSelectedItem();
+            if (!item) return;
+            const minZ = Math.min(0, ...state.items.map(entry => entry.z || 0));
+            item.z = minZ - 1;
+            render();
+        }
+
+        function bindInspector() {
+            const update = () => {
+                const item = getSelectedItem();
+                if (!item) return;
+                const previousType = item.type;
+                item.name = formFields.name.value;
+                item.type = formFields.type.value;
+                item.color = formFields.color.value;
+                item.x = Number(formFields.x.value) || 0;
+                item.y = Number(formFields.y.value) || 0;
+                item.w = Math.max(1, Number(formFields.w.value) || 1);
+                item.h = Math.max(1, Number(formFields.h.value) || 1);
+                item.rotation = Number(formFields.rotation.value) || 0;
+                item.z = Number(formFields.z.value) || 0;
+                item.text = formFields.text.value;
+
+                if (previousType !== item.type && DEFAULTS[item.type]) {
+                    const defaults = DEFAULTS[item.type];
+                    item.w = defaults.w;
+                    item.h = defaults.h;
+                    item.color = defaults.color;
+                    item.rotation = defaults.rotation;
+                    if (!item.text || item.text === previousType) {
+                        item.text = defaults.text;
+                    }
+                }
+                render(false);
+            };
+
+            Object.values(formFields).forEach(field => {
+                if (field.tagName === 'INPUT' || field.tagName === 'SELECT' || field.tagName === 'TEXTAREA') {
+                    field.addEventListener('input', update);
+                    field.addEventListener('change', update);
+                }
+            });
+
+            formFields.projectName.addEventListener('input', () => {
+                state.projectName = formFields.projectName.value || 'Main Yard Composer';
+                document.title = state.projectName;
+            });
+
+            formFields.canvasWidth.addEventListener('input', () => {
+                canvas.style.width = `${Math.max(320, Number(formFields.canvasWidth.value) || 1452)}px`;
+            });
+
+            formFields.canvasHeight.addEventListener('input', () => {
+                canvas.style.height = `${Math.max(320, Number(formFields.canvasHeight.value) || 804)}px`;
+            });
+        }
+
+        function syncInspector() {
+            const item = getSelectedItem();
+            if (!item) {
+                emptyState.classList.remove('hidden');
+                inspectorForm.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            inspectorForm.classList.remove('hidden');
+
+            formFields.name.value = item.name ?? '';
+            formFields.type.innerHTML = TOOL_DEFS.map(def => `<option value="${def.type}">${def.label}</option>`).join('');
+            formFields.type.value = item.type;
+            formFields.color.value = normalizeColor(item.color);
+            formFields.x.value = Math.round(item.x);
+            formFields.y.value = Math.round(item.y);
+            formFields.w.value = Math.round(item.w);
+            formFields.h.value = Math.round(item.h);
+            formFields.rotation.value = Math.round(item.rotation || 0);
+            formFields.z.value = Math.round(item.z || 0);
+            formFields.text.value = item.text ?? '';
+        }
+
+        function normalizeColor(value) {
+            if (!value) return '#ffffff';
+            if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
+            const div = document.createElement('div');
+            div.style.color = value;
+            document.body.appendChild(div);
+            const computed = getComputedStyle(div).color;
+            div.remove();
+            const match = computed.match(/\d+/g);
+            if (!match) return '#ffffff';
+            return '#' + match.slice(0, 3).map(n => Number(n).toString(16).padStart(2, '0')).join('');
+        }
+
+        function renderItem(item) {
+            const el = document.createElement('div');
+            el.className = `yard-item ${item.type}` + (item.id === state.selectedId ? ' selected' : '');
+            el.dataset.id = item.id;
+            el.style.left = `${item.x}px`;
+            el.style.top = `${item.y}px`;
+            el.style.width = `${item.w}px`;
+            el.style.height = `${item.h}px`;
+            el.style.transform = `rotate(${item.rotation || 0}deg)`;
+            el.style.background = item.type === 'boundary' ? 'rgba(255,255,255,0.02)' : item.color || 'white';
+            el.style.zIndex = String(item.z || 0);
+            el.style.borderColor = item.type === 'gate' ? '#986d00' : 'rgba(0,0,0,0.55)';
+
+            const label = document.createElement('div');
+            label.className = 'item-label';
+            label.textContent = state.showLabels ? (item.text || item.name) : '';
+            el.appendChild(label);
+
+            const handle = document.createElement('div');
+            handle.className = 'resize-handle';
+            handle.dataset.handle = 'resize';
+            el.appendChild(handle);
+
+            el.addEventListener('pointerdown', onItemPointerDown);
+            return el;
+        }
+
+        function render(showFullInspector = true) {
+            canvas.classList.toggle('grid-off', !state.gridVisible);
+            selectionGhost.style.display = state.showGuides && state.selectedId ? 'block' : 'none';
+            itemLayer.innerHTML = '';
+
+            const sorted = [...state.items].sort((a, b) => (a.z || 0) - (b.z || 0));
+            for (const item of sorted) {
+                itemLayer.appendChild(renderItem(item));
+            }
+
+            if (showFullInspector) syncInspector();
+
+            createToolList();
+        }
+
+        let dragMode = null;
+        let dragState = null;
+
+        function canvasPoint(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        function selectItem(id, redraw = true) {
+            state.selectedId = id;
+            if (redraw) {
+                render();
+            } else {
+                syncInspector();
+            }
+        }
+
+        function onItemPointerDown(event) {
+            event.stopPropagation();
+            const itemEl = event.currentTarget;
+            const id = Number(itemEl.dataset.id);
+            const item = getItem(id);
+            if (!item) return;
+
+            selectItem(id, false);
+
+            const isResize = event.target.dataset.handle === 'resize';
+            const start = canvasPoint(event);
+
+            dragMode = isResize ? 'resize' : 'move';
+            dragState = {
+                id,
+                pointerId: event.pointerId,
+                startX: start.x,
+                startY: start.y,
+                itemX: item.x,
+                itemY: item.y,
+                itemW: item.w,
+                itemH: item.h
+            };
+
+            itemEl.setPointerCapture(event.pointerId);
+            canvas.addEventListener('pointermove', onCanvasPointerMove);
+            canvas.addEventListener('pointerup', onCanvasPointerUp);
+            canvas.addEventListener('pointercancel', onCanvasPointerUp);
+        }
+
+        function onCanvasPointerMove(event) {
+            if (!dragState) return;
+            const item = getItem(dragState.id);
+            if (!item) return;
+            const point = canvasPoint(event);
+            const dx = point.x - dragState.startX;
+            const dy = point.y - dragState.startY;
+
+            if (dragMode === 'move') {
+                let nextX = dragState.itemX + dx;
+                let nextY = dragState.itemY + dy;
+                if (state.snap) {
+                    nextX = snap(nextX);
+                    nextY = snap(nextY);
+                }
+                item.x = clamp(nextX, 0, canvas.clientWidth - item.w);
+                item.y = clamp(nextY, 0, canvas.clientHeight - item.h);
+            } else if (dragMode === 'resize') {
+                let nextW = dragState.itemW + dx;
+                let nextH = dragState.itemH + dy;
+                if (state.snap) {
+                    nextW = snap(nextW);
+                    nextH = snap(nextH);
+                }
+                item.w = clamp(nextW, 12, canvas.clientWidth - item.x);
+                item.h = clamp(nextH, 12, canvas.clientHeight - item.y);
+            }
+
+            render(false);
+            syncInspector();
+        }
+
+        function onCanvasPointerUp() {
+            dragMode = null;
+            dragState = null;
+            canvas.removeEventListener('pointermove', onCanvasPointerMove);
+            canvas.removeEventListener('pointerup', onCanvasPointerUp);
+            canvas.removeEventListener('pointercancel', onCanvasPointerUp);
+        }
+
+        canvas.addEventListener('pointerdown', event => {
+            if (event.target !== canvas && event.target !== selectionGhost) return;
+            const point = canvasPoint(event);
+            if (!state.tool) return;
+            const type = state.tool;
+            const defaults = DEFAULTS[type];
+            const x = clamp(state.snap ? snap(point.x - defaults.w / 2) : point.x - defaults.w / 2, 0, canvas.clientWidth - defaults.w);
+            const y = clamp(state.snap ? snap(point.y - defaults.h / 2) : point.y - defaults.h / 2, 0, canvas.clientHeight - defaults.h);
+            createItem(type, x, y);
+        });
+
+        canvas.addEventListener('dblclick', event => {
+            if (event.target !== canvas) return;
+            const point = canvasPoint(event);
+            state.tool = 'zone';
+            createToolList();
+            createItem('zone', clamp(snap(point.x - DEFAULTS.zone.w / 2), 0, canvas.clientWidth - DEFAULTS.zone.w), clamp(snap(point.y - DEFAULTS.zone.h / 2), 0, canvas.clientHeight - DEFAULTS.zone.h));
+        });
+
+        snapToggle.addEventListener('change', () => {
+            state.snap = snapToggle.checked;
+        });
+
+        labelsToggle.addEventListener('change', () => {
+            state.showLabels = labelsToggle.checked;
+            render(false);
+        });
+
+        assistToggle.addEventListener('change', () => {
+            state.showGuides = assistToggle.checked;
+            render(false);
+        });
+
+        gridBtn.addEventListener('click', () => {
+            state.gridVisible = !state.gridVisible;
+            gridBtn.textContent = state.gridVisible ? 'Toggle Grid' : 'Show Grid';
+            render(false);
+        });
+
+        duplicateBtn.addEventListener('click', duplicateSelected);
+        deleteBtn.addEventListener('click', deleteSelected);
+        frontBtn.addEventListener('click', bringToFront);
+        backBtn.addEventListener('click', sendToBack);
+
+        newBtn.addEventListener('click', () => {
+            state.items = [];
+            state.selectedId = null;
+            state.nextId = 1;
+            render();
+        });
+
+        saveBtn.addEventListener('click', () => {
+            const payload = {
+                version: 1,
+                projectName: state.projectName,
+                snap: state.snap,
+                gridVisible: state.gridVisible,
+                items: state.items,
+                canvas: {
+                    width: Number(formFields.canvasWidth.value) || 1452,
+                    height: Number(formFields.canvasHeight.value) || 804
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'yard-composer.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+
+        loadBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+            const text = await file.text();
+            const data = JSON.parse(text);
+            state.projectName = data.projectName || 'Main Yard Composer';
+            state.snap = data.snap ?? true;
+            state.gridVisible = data.gridVisible ?? true;
+            state.items = Array.isArray(data.items) ? data.items : [];
+            state.selectedId = state.items[0]?.id ?? null;
+            state.nextId = Math.max(1, ...state.items.map(item => Number(item.id) || 0)) + 1;
+            formFields.projectName.value = state.projectName;
+            formFields.canvasWidth.value = data.canvas?.width || 1452;
+            formFields.canvasHeight.value = data.canvas?.height || 804;
+            canvas.style.width = `${formFields.canvasWidth.value}px`;
+            canvas.style.height = `${formFields.canvasHeight.value}px`;
+            snapToggle.checked = state.snap;
+            render();
+            fileInput.value = '';
+        });
+
+        document.addEventListener('keydown', event => {
+            const item = getSelectedItem();
+            if (!item) return;
+
+            if (event.key === 'Delete' || event.key === 'Backspace') {
+                if (document.activeElement === formFields.text || document.activeElement === formFields.name) return;
+                deleteSelected();
+            }
+        });
+
+        createRulers();
+        createToolList();
+        bindInspector();
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Yard Layout Designer</title>
+    <style>
+        :root {
+            --bg: #f5f2ea;
+            --paper: #ffffff;
+            --panel: #fbfaf6;
+            --ink: #1f1f1f;
+            --muted: #6c665d;
+            --line: #d9d2c4;
+            --line-strong: #bcae8d;
+            --accent: #ffea00;
+            --accent-soft: #fff6a8;
+            --cyan: #29dff0;
+            --shadow: 0 16px 34px rgba(32, 26, 18, 0.12);
+            --slot: #e7ebe5;
+            --zone: #d9d7cf;
+            --area: #cbc5bb;
+            --template: #f3f0e7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0) 42%),
+                linear-gradient(180deg, #f9f7f1 0%, var(--bg) 100%);
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(6px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .brand .title {
+            padding: 2px 8px 4px;
+            background: var(--accent);
+            font-size: 22px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .brand .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            height: 34px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid #cfc6b5;
+            background: linear-gradient(180deg, #ffffff, #f0e9da);
+            color: #232323;
+            cursor: pointer;
+        }
+
+        .btn.primary {
+            background: linear-gradient(180deg, #fff6bc, #ffe65a);
+            border-color: #d6c238;
+            font-weight: 800;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 300px minmax(700px, 1fr) 320px;
+            gap: 14px;
+            padding: 14px;
+            min-height: 0;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .panel-head {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            background: linear-gradient(180deg, #ffffff, #f6f2e7);
+        }
+
+        .panel-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.9px;
+            font-weight: 900;
+        }
+
+        .panel-subtitle {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .tree {
+            padding: 8px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .tree-group {
+            border: 1px solid #ddd3c0;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #fff, #f5f1e7);
+            overflow: hidden;
+        }
+
+        .tree-group-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 10px;
+            background: linear-gradient(180deg, #fffdf7, #f2edde);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 800;
+        }
+
+        .tree-group-body {
+            padding: 6px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .tree-node {
+            width: 100%;
+            border: 1px solid #d9d1bf;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 8px 10px;
+            text-align: left;
+            cursor: pointer;
+            display: grid;
+            gap: 3px;
+        }
+
+        .tree-node.selected {
+            border-color: #bcae2f;
+            box-shadow: 0 0 0 2px rgba(255, 234, 0, 0.22);
+            background: #fffdea;
+        }
+
+        .tree-node small {
+            color: var(--muted);
+        }
+
+        .tree-node-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .tree-node-main {
+            display: grid;
+            gap: 3px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .tree-node-title {
+            font-weight: 800;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .tree-node-actions {
+            display: inline-flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .tree-action-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #c8bfad;
+            border-radius: 7px;
+            background: linear-gradient(180deg, #ffffff, #f1ece2);
+            color: #2f2a21;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .tree-action-btn:hover {
+            border-color: #a99d83;
+            background: linear-gradient(180deg, #fffdf6, #eae2cf);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .indent {
+            margin-left: 8px;
+            padding-left: 8px;
+            border-left: 2px solid rgba(0, 0, 0, 0.08);
+            display: grid;
+            gap: 6px;
+        }
+
+        .stage {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            min-width: 0;
+        }
+
+        .stage-toolbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            background: linear-gradient(180deg, #fffefb, #f5efe1);
+            flex-wrap: wrap;
+        }
+
+        .stage-toolbar .panel-subtitle {
+            max-width: 620px;
+        }
+
+        .meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .composer-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .composer-actions .btn {
+            height: 30px;
+            padding: 0 10px;
+            font-size: 12px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 234, 0, 0.18);
+            border: 1px solid rgba(181, 166, 43, 0.3);
+            color: #332f20;
+            font-weight: 700;
+        }
+
+        .preview-wrap {
+            position: relative;
+            overflow: auto;
+            background:
+                repeating-linear-gradient(0deg, transparent 0 23px, rgba(0, 0, 0, 0.05) 23px 24px),
+                repeating-linear-gradient(90deg, transparent 0 23px, rgba(0, 0, 0, 0.05) 23px 24px),
+                #fdfcf8;
+        }
+
+        .preview-caption {
+            padding: 8px 10px 0;
+        }
+
+        .preview {
+            position: relative;
+            margin: 4px;
+            width: 1180px;
+            height: 760px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+        }
+
+        .preview-grid {
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent 0 23px, rgba(0, 0, 0, 0.04) 23px 24px),
+                repeating-linear-gradient(90deg, transparent 0 23px, rgba(0, 0, 0, 0.04) 23px 24px);
+            pointer-events: none;
+        }
+
+        .preview-item {
+            position: absolute;
+            border: 1px solid rgba(40, 40, 40, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            user-select: none;
+        }
+
+        .preview-item.boundary {
+            background: rgba(255, 255, 255, 0.03);
+            border-style: dashed;
+            border-width: 2px;
+        }
+
+        .preview-item.zone {
+            background: #efede7;
+            border-radius: 14px;
+            box-shadow: none;
+            overflow: hidden;
+            align-items: stretch;
+            justify-content: stretch;
+        }
+
+        .preview-item.area {
+            background: rgba(207, 202, 194, 0.95);
+        }
+
+        .preview-item.template {
+            background: rgba(243, 240, 231, 0.96);
+        }
+
+        .preview-item.slot {
+            background: #e8ece6;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .preview-item.composer-shell {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+        }
+
+        .preview-item.axis-title {
+            border: none;
+            background: transparent;
+            font-size: 8px;
+            font-weight: 800;
+            color: #4a4337;
+            justify-content: flex-start;
+            align-items: center;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            opacity: 0.9;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .preview-item.axis-label {
+            border: 1px solid rgba(0, 0, 0, 0.14);
+            background: #f8f6ef;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: 700;
+            color: #2f2a21;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            letter-spacing: 0.04em;
+            padding: 0 2px;
+        }
+
+        .preview-item.count-badge {
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 242, 233, 0.92));
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 800;
+            color: #4a4337;
+            padding: 0 8px;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            box-shadow: 0 4px 10px rgba(64, 56, 43, 0.08);
+        }
+
+        .preview-item.area-chip {
+            border: 1px solid rgba(100, 92, 78, 0.22);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 242, 232, 0.9));
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #3c372e;
+            padding: 0;
+            justify-content: flex-start;
+            align-items: stretch;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            box-shadow: 0 6px 14px rgba(64, 56, 43, 0.08);
+        }
+
+        .zone-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 10px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f7f6f2;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+        }
+
+        .zone-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: none;
+            pointer-events: none;
+        }
+
+        .zone-card-header,
+        .zone-card-body,
+        .zone-area-grid {
+            position: relative;
+            z-index: 1;
+        }
+
+        .zone-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .zone-card-kicker {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: rgba(76, 67, 53, 0.76);
+            margin-bottom: 4px;
+        }
+
+        .zone-card-title {
+            font-size: 20px;
+            line-height: 1;
+            font-weight: 900;
+            color: #2f2a21;
+        }
+
+        .zone-card-subtitle {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #6c665d;
+        }
+
+        .zone-card-pill {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 94px;
+            height: 28px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            font-size: 10px;
+            font-weight: 900;
+            color: #3d372a;
+            letter-spacing: 0.04em;
+            box-shadow: none;
+        }
+
+        .zone-area-grid {
+            margin-top: 0;
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: auto;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 10px;
+        }
+
+        .area-card {
+            position: relative;
+            width: 156px;
+            height: 52px;
+            flex: 0 0 auto;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: #f2f0ea;
+            box-shadow: none;
+            overflow: hidden;
+        }
+
+        .area-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 5px;
+            background: #c5bfb1;
+        }
+
+        .area-card-inner {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            padding: 6px 10px 6px 14px;
+            display: grid;
+            gap: 2px;
+            align-content: center;
+        }
+
+        .area-card-title {
+            font-size: 10px;
+            font-weight: 900;
+            color: #2f2a21;
+            line-height: 1.1;
+        }
+
+        .area-card-meta {
+            font-size: 9px;
+            font-weight: 700;
+            color: #6c665d;
+            letter-spacing: 0.03em;
+        }
+
+        .preview-item.slot.enabled {
+            background: linear-gradient(180deg, #eaf4e5, #dbe9d4);
+            color: #1e3b1f;
+        }
+
+        .preview-item.slot.disabled {
+            background: linear-gradient(180deg, #f7f7f7, #ececec);
+            border-style: dashed;
+            color: #8c8c8c;
+        }
+
+        .preview-item.gate {
+            background: #ffca2c;
+        }
+
+        .preview-label {
+            display: inline-block;
+            font-size: 10px;
+            line-height: 1.2;
+            color: #2d2a24;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 3px 8px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 999px;
+            max-width: 420px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .preview-legend {
+            padding: 0 14px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            border: 1px solid rgba(0, 0, 0, 0.22);
+        }
+
+        .inspector {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        .inspector-body {
+            padding: 12px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .section {
+            border: 1px solid #ddd3c0;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #fff, #f6f1e7);
+            padding: 12px;
+        }
+
+        .section-title {
+            margin-bottom: 10px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #3a362f;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            min-height: 34px;
+            border: 1px solid #cfc5b3;
+            border-radius: 10px;
+            background: #fff;
+            padding: 7px 10px;
+            color: #222;
+        }
+
+        .field textarea {
+            min-height: 86px;
+            resize: vertical;
+        }
+
+        .tiny {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .json-box {
+            height: 220px;
+            width: 100%;
+            resize: vertical;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 12px;
+        }
+
+        .footer-note {
+            padding: 0 16px 16px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1320px) {
+            .workspace {
+                grid-template-columns: 280px minmax(640px, 1fr) 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <span class="title">Master Data Yard Layout</span>
+                <span class="subtitle">Yard > Zone > Area > Composition</span>
+            </div>
+            <div class="actions">
+                <button class="btn primary" id="addZoneBtn">Add Zone</button>
+                <button class="btn" id="addAreaBtn">Add Area</button>
+                <button class="btn" id="saveBtn">Save JSON</button>
+                <button class="btn" id="loadBtn">Load JSON</button>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <aside class="panel">
+                <div class="panel-head">
+                    <div class="panel-title">Structure</div>
+                    <div class="panel-subtitle">Susun zona, lalu definisikan area di tiap zona.</div>
+                </div>
+                <div class="tree" id="tree"></div>
+            </aside>
+
+            <main class="panel stage">
+                <div class="stage-toolbar">
+                    <div>
+                        <div class="panel-title" id="activeTitle">Preview</div>
+                        <div class="panel-subtitle" id="activeSubtitle">Pilih area untuk melihat komposisi line dan row.</div>
+                    </div>
+                    <div class="composer-actions">
+                        <button class="btn" id="enableAllBtn">Enable All</button>
+                        <button class="btn" id="disableAllBtn">Disable All</button>
+                        <button class="btn" id="invertBtn">Invert</button>
+                    </div>
+                    <div class="meta">
+                        <span class="pill" id="zoneCountPill">0 Zone</span>
+                        <span class="pill" id="areaCountPill">0 Area</span>
+                        <span class="pill" id="templatePill">No composition</span>
+                        <span class="pill" id="slotStatePill">Composer off</span>
+                    </div>
+                </div>
+                <div class="preview-wrap">
+                    <div class="preview-caption">
+                        <div class="preview-label" id="previewLabel">No area selected</div>
+                    </div>
+                    <div class="preview" id="preview">
+                        <div class="preview-grid"></div>
+                    </div>
+                </div>
+                <div class="preview-legend">
+                    <span class="legend-item"><span class="swatch" style="background:#fff;"></span> Boundary</span>
+                    <span class="legend-item"><span class="swatch" style="background:#d9d9d4;"></span> Zone</span>
+                    <span class="legend-item"><span class="swatch" style="background:#cfcac1;"></span> Area</span>
+                    <span class="legend-item"><span class="swatch" style="background:#f3f0e7;"></span> Composer Shell</span>
+                    <span class="legend-item"><span class="swatch" style="background:#dbe9d4;"></span> Enabled Slot</span>
+                    <span class="legend-item"><span class="swatch" style="background:#ececec;"></span> Disabled Slot</span>
+                    <span class="legend-item"><span class="swatch" style="background:#ffca2c;"></span> Gate</span>
+                </div>
+            </main>
+
+            <aside class="panel inspector">
+                <div class="panel-head">
+                    <div class="panel-title">Inspector</div>
+                    <div class="panel-subtitle">Edit master yard, zone, dan area sesuai atributnya masing-masing.</div>
+                </div>
+                <div class="inspector-body">
+                    <div class="section">
+                        <div class="section-title">Master Yard</div>
+                        <div class="grid">
+                            <div class="row-2">
+                                <div class="field">
+                                    <label for="yardName">Yard Name</label>
+                                    <input id="yardName" type="text">
+                                </div>
+                                <div class="field">
+                                    <label for="yardCode">Yard Code</label>
+                                    <input id="yardCode" type="text">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="yardDesc">Description</label>
+                                <textarea id="yardDesc"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Selected Node</div>
+                        <div class="grid" id="emptyState">
+                            <div class="tiny">Pilih zone atau area di struktur untuk mengedit properti.</div>
+                        </div>
+                        <div class="grid" id="formState" style="display:none;">
+                            <div class="tiny" id="selectedHint"></div>
+                            <div id="zoneForm" class="grid hidden">
+                                <div class="field">
+                                    <label for="zoneName">Zone Name</label>
+                                    <input id="zoneName" type="text">
+                                </div>
+                                <div class="field">
+                                    <label for="zoneCode">Zone Code</label>
+                                    <input id="zoneCode" type="text">
+                                </div>
+                                <div class="field">
+                                    <label for="zoneNote">Notes</label>
+                                    <textarea id="zoneNote"></textarea>
+                                </div>
+                            </div>
+                            <div id="areaForm" class="grid hidden">
+                                <div class="field">
+                                    <label for="areaName">Area Name</label>
+                                    <input id="areaName" type="text">
+                                </div>
+                                <div class="field">
+                                    <label for="areaCode">Area Code</label>
+                                    <input id="areaCode" type="text">
+                                </div>
+                                <div class="row-2">
+                                    <div class="field">
+                                        <label for="slotCols">Line Count</label>
+                                        <input id="slotCols" type="number" min="1">
+                                    </div>
+                                    <div class="field">
+                                        <label for="slotRows">Row Count</label>
+                                        <input id="slotRows" type="number" min="1">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label for="areaNote">Notes</label>
+                                    <textarea id="areaNote"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">JSON Preview</div>
+                        <textarea id="jsonPreview" class="json-box" readonly></textarea>
+                    </div>
+                </div>
+                <div class="footer-note">
+                    Ini adalah mockup yang lebih ringan untuk master data. Layout detail penuh cukup muncul saat edit area.
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <input id="fileInput" type="file" accept="application/json" style="display:none;">
+
+    <script>
+        const state = {
+            yard: {
+                id: 1,
+                name: 'Main Yard',
+                code: 'YRD-001',
+                description: 'Master data yard layout untuk composition per area.',
+                zones: [
+                    {
+                        id: 11,
+                        name: 'Zone A',
+                        code: 'ZA',
+                        type: 'zone',
+                        width: 420,
+                        height: 280,
+                        note: 'Zona depan dekat gate.',
+                        areas: [
+                            {
+                                id: 111,
+                                name: 'Area A1',
+                                code: 'ZA-A1',
+                                type: 'area',
+                                width: 260,
+                                height: 140,
+                                slotCols: 9,
+                                slotRows: 2,
+                                slotStates: {},
+                                note: 'Susunan line-row pendek.'
+                            },
+                            {
+                                id: 112,
+                                name: 'Area A2',
+                                code: 'ZA-A2',
+                                type: 'area',
+                                width: 300,
+                                height: 160,
+                                slotCols: 7,
+                                slotRows: 6,
+                                slotStates: {},
+                                note: 'Susunan slot rapat.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 12,
+                        name: 'Zone B',
+                        code: 'ZB',
+                        type: 'zone',
+                        width: 380,
+                        height: 240,
+                        note: 'Zona belakang untuk area staging.',
+                        areas: [
+                            {
+                                id: 121,
+                                name: 'Area B1',
+                                code: 'ZB-B1',
+                                type: 'area',
+                                width: 320,
+                                height: 180,
+                                slotCols: 8,
+                                slotRows: 3,
+                                slotStates: {},
+                                note: 'Staging block.'
+                            }
+                        ]
+                    }
+                ]
+            },
+            selected: { type: 'area', zoneId: 11, areaId: 111 },
+            nextId: 200
+        };
+
+        const treeEl = document.getElementById('tree');
+        const previewEl = document.getElementById('preview');
+        const previewLabel = document.getElementById('previewLabel');
+        const activeTitle = document.getElementById('activeTitle');
+        const activeSubtitle = document.getElementById('activeSubtitle');
+        const zoneCountPill = document.getElementById('zoneCountPill');
+        const areaCountPill = document.getElementById('areaCountPill');
+        const templatePill = document.getElementById('templatePill');
+        const slotStatePill = document.getElementById('slotStatePill');
+        const enableAllBtn = document.getElementById('enableAllBtn');
+        const disableAllBtn = document.getElementById('disableAllBtn');
+        const invertBtn = document.getElementById('invertBtn');
+        const jsonPreview = document.getElementById('jsonPreview');
+        const fileInput = document.getElementById('fileInput');
+        const emptyState = document.getElementById('emptyState');
+        const formState = document.getElementById('formState');
+        const selectedHint = document.getElementById('selectedHint');
+        const zoneForm = document.getElementById('zoneForm');
+        const areaForm = document.getElementById('areaForm');
+
+        const fields = {
+            yardName: document.getElementById('yardName'),
+            yardCode: document.getElementById('yardCode'),
+            yardDesc: document.getElementById('yardDesc'),
+            zoneName: document.getElementById('zoneName'),
+            zoneCode: document.getElementById('zoneCode'),
+            zoneNote: document.getElementById('zoneNote'),
+            areaName: document.getElementById('areaName'),
+            areaCode: document.getElementById('areaCode'),
+            slotCols: document.getElementById('slotCols'),
+            slotRows: document.getElementById('slotRows'),
+            areaNote: document.getElementById('areaNote')
+        };
+
+        document.getElementById('addZoneBtn').addEventListener('click', addZone);
+        document.getElementById('addAreaBtn').addEventListener('click', addArea);
+        document.getElementById('saveBtn').addEventListener('click', saveJson);
+        document.getElementById('loadBtn').addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', loadJson);
+        enableAllBtn.addEventListener('click', () => setAllSlots(true));
+        disableAllBtn.addEventListener('click', () => setAllSlots(false));
+        invertBtn.addEventListener('click', invertSlots);
+
+        Object.values(fields).forEach(field => {
+            field.addEventListener('input', syncSelectedFromForm);
+            field.addEventListener('change', syncSelectedFromForm);
+        });
+
+        function getSelectedZone() {
+            const { zoneId } = state.selected;
+            return state.yard.zones.find(zone => zone.id === zoneId) || null;
+        }
+
+        function getSelectedArea() {
+            const zone = getSelectedZone();
+            if (!zone) return null;
+            return zone.areas.find(area => area.id === state.selected.areaId) || null;
+        }
+
+        function countAreas() {
+            return state.yard.zones.reduce((sum, zone) => sum + zone.areas.length, 0);
+        }
+
+        function getAreaSlotKey(lineIndex, rowIndex) {
+            return `${lineIndex}-${rowIndex}`;
+        }
+
+        function ensureAreaSlotStates(area) {
+            const cols = Math.max(1, Number(area.slotCols) || 0);
+            const rows = Math.max(1, Number(area.slotRows) || 0);
+            const previous = area.slotStates && typeof area.slotStates === 'object' ? area.slotStates : {};
+            const next = {};
+
+            for (let line = 1; line <= cols; line++) {
+                for (let row = 1; row <= rows; row++) {
+                    const key = getAreaSlotKey(line, row);
+                    next[key] = previous[key] !== undefined ? previous[key] : true;
+                }
+            }
+
+            area.slotStates = next;
+            return next;
+        }
+
+        function countEnabledSlots(area) {
+            const states = ensureAreaSlotStates(area);
+            const total = Object.keys(states).length;
+            const enabled = Object.values(states).filter(Boolean).length;
+            return { total, enabled, disabled: total - enabled };
+        }
+
+        function toggleAreaSlot(area, key) {
+            const states = ensureAreaSlotStates(area);
+            states[key] = !states[key];
+            render(false);
+        }
+
+        function setAllSlots(enabled) {
+            const area = getSelectedArea();
+            if (!area) return;
+            const states = ensureAreaSlotStates(area);
+            for (const key of Object.keys(states)) {
+                states[key] = enabled;
+            }
+            render(false);
+        }
+
+        function invertSlots() {
+            const area = getSelectedArea();
+            if (!area) return;
+            const states = ensureAreaSlotStates(area);
+            for (const key of Object.keys(states)) {
+                states[key] = !states[key];
+            }
+            render(false);
+        }
+
+        function selectZone(zoneId, areaId = null) {
+            state.selected = { type: areaId ? 'area' : 'zone', zoneId, areaId };
+            render();
+        }
+
+        function selectArea(zoneId, areaId) {
+            state.selected = { type: 'area', zoneId, areaId };
+            render();
+        }
+
+        function addAreaToZone(zoneId, afterAreaId = null) {
+            const zone = state.yard.zones.find(entry => entry.id === zoneId);
+            if (!zone) return null;
+
+            const insertAt = afterAreaId
+                ? Math.max(0, zone.areas.findIndex(area => area.id === afterAreaId) + 1)
+                : zone.areas.length;
+
+            const area = {
+                id: state.nextId++,
+                name: `Area ${zone.code}-${zone.areas.length + 1}`,
+                code: `${zone.code}-A${zone.areas.length + 1}`,
+                type: 'area',
+                width: 260,
+                height: 140,
+                slotCols: 9,
+                slotRows: 2,
+                slotStates: {},
+                note: ''
+            };
+
+            zone.areas.splice(insertAt, 0, area);
+            selectArea(zone.id, area.id);
+            return area;
+        }
+
+        function deleteArea(zoneId, areaId) {
+            const zone = state.yard.zones.find(entry => entry.id === zoneId);
+            if (!zone) return;
+
+            const index = zone.areas.findIndex(area => area.id === areaId);
+            if (index === -1) return;
+
+            zone.areas.splice(index, 1);
+
+            if (zone.areas.length) {
+                const nextArea = zone.areas[Math.min(index, zone.areas.length - 1)];
+                selectArea(zone.id, nextArea.id);
+            } else {
+                selectZone(zone.id);
+            }
+        }
+
+        function deleteZone(zoneId) {
+            const index = state.yard.zones.findIndex(zone => zone.id === zoneId);
+            if (index === -1) return;
+
+            state.yard.zones.splice(index, 1);
+
+            if (state.yard.zones.length) {
+                const nextZone = state.yard.zones[Math.min(index, state.yard.zones.length - 1)];
+                selectZone(nextZone.id);
+            } else {
+                state.selected = { type: 'yard', zoneId: null, areaId: null };
+                render();
+            }
+        }
+
+        function addZone() {
+            const zone = {
+                id: state.nextId++,
+                name: `Zone ${String.fromCharCode(64 + state.yard.zones.length + 1)}`,
+                code: `Z${state.yard.zones.length + 1}`,
+                type: 'zone',
+                width: 360,
+                height: 220,
+                note: '',
+                areas: []
+            };
+            state.yard.zones.push(zone);
+            selectZone(zone.id);
+        }
+
+        function addArea() {
+            const zone = getSelectedZone() || state.yard.zones[0];
+            if (!zone) return;
+            addAreaToZone(zone.id);
+        }
+
+        function syncSelectedFromForm() {
+            state.yard.name = fields.yardName.value || 'Main Yard';
+            state.yard.code = fields.yardCode.value || 'YRD-001';
+            state.yard.description = fields.yardDesc.value || '';
+
+            const zone = getSelectedZone();
+            if (!zone) return;
+
+            if (state.selected.type === 'zone') {
+                zone.name = fields.zoneName.value;
+                zone.code = fields.zoneCode.value;
+                zone.note = fields.zoneNote.value;
+                render(false);
+                return;
+            }
+
+            const area = getSelectedArea();
+            if (!area) {
+                render();
+                return;
+            }
+
+            area.name = fields.areaName.value;
+            area.code = fields.areaCode.value;
+            area.slotCols = Math.max(1, Number(fields.slotCols.value) || 1);
+            area.slotRows = Math.max(1, Number(fields.slotRows.value) || 1);
+            area.note = fields.areaNote.value;
+            ensureAreaSlotStates(area);
+            render(false);
+        }
+
+        function syncForm() {
+            fields.yardName.value = state.yard.name || '';
+            fields.yardCode.value = state.yard.code || '';
+            fields.yardDesc.value = state.yard.description || '';
+
+            const zone = getSelectedZone();
+            const area = getSelectedArea();
+
+            if (!zone) {
+                selectedHint.textContent = 'Pilih zone atau area untuk mengedit atributnya.';
+                zoneForm.classList.add('hidden');
+                areaForm.classList.add('hidden');
+                emptyState.style.display = 'grid';
+                formState.style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            formState.style.display = 'grid';
+
+            if (area) {
+                selectedHint.textContent = `Area selected: ${area.code}`;
+                zoneForm.classList.add('hidden');
+                areaForm.classList.remove('hidden');
+                fields.areaName.value = area.name || '';
+                fields.areaCode.value = area.code || '';
+                fields.slotCols.value = area.slotCols ?? 1;
+                fields.slotRows.value = area.slotRows ?? 1;
+                fields.areaNote.value = area.note || '';
+                return;
+            }
+
+            selectedHint.textContent = `Zone selected: ${zone.code}`;
+            zoneForm.classList.remove('hidden');
+            areaForm.classList.add('hidden');
+            fields.zoneName.value = zone.name || '';
+            fields.zoneCode.value = zone.code || '';
+            fields.zoneNote.value = zone.note || '';
+        }
+
+        function drawGridSlots(area, left, top) {
+            const cols = Math.max(1, Number(area.slotCols) || 1);
+            const rows = Math.max(1, Number(area.slotRows) || 1);
+            const slots = [];
+            const cellW = Math.max(18, Math.floor((area.width - 20) / cols));
+            const cellH = Math.max(14, Math.floor((area.height - 22) / rows));
+            const gap = 2;
+            let count = 1;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    slots.push({
+                        className: 'preview-item slot',
+                        x: left + 10 + c * (cellW + gap),
+                        y: top + 24 + r * (cellH + gap),
+                        w: cellW,
+                        h: cellH,
+                        label: String(count).padStart(2, '0')
+                    });
+                    count++;
+                }
+            }
+
+            return slots;
+        }
+
+        function appendPreviewItem(item) {
+            const div = document.createElement('div');
+            div.className = item.className;
+            div.style.left = `${item.x}px`;
+            div.style.top = `${item.y}px`;
+            div.style.width = `${item.w}px`;
+            div.style.height = `${item.h}px`;
+
+            if (item.html !== undefined) {
+                div.innerHTML = item.html;
+            } else {
+                div.textContent = item.label || '';
+            }
+
+            if (item.title) {
+                div.title = item.title;
+            }
+
+            if (item.onClick) {
+                div.addEventListener('click', item.onClick);
+            }
+
+            previewEl.appendChild(div);
+            return div;
+        }
+
+        function setPreviewCanvasSize(width, height) {
+            previewEl.style.width = `${Math.max(1180, Math.ceil(width))}px`;
+            previewEl.style.height = `${Math.max(760, Math.ceil(height))}px`;
+        }
+
+        function renderAreaComposer(area, zone) {
+            const states = ensureAreaSlotStates(area);
+            const counts = countEnabledSlots(area);
+            const cols = Math.max(1, Number(area.slotCols) || 1);
+            const rows = Math.max(1, Number(area.slotRows) || 1);
+            const shellX = 16;
+            const shellY = 18;
+            const pad = 10;
+            const rowHeaderW = 62;
+            const colHeaderH = 26;
+            const gap = 4;
+            const cellW = 46;
+            const cellH = 24;
+            const gridW = cols * cellW + Math.max(0, cols - 1) * gap;
+            const gridH = rows * cellH + Math.max(0, rows - 1) * gap;
+            const shellW = Math.max(520, shellX + pad * 2 + rowHeaderW + gridW + 24);
+            const shellH = Math.max(260, shellY + pad * 2 + colHeaderH + gridH + 34);
+            const gridX = shellX + pad + rowHeaderW;
+            const gridY = shellY + pad + colHeaderH;
+            const lineLabelY = gridY - 20;
+            const rowLabelX = shellX + pad;
+
+            setPreviewCanvasSize(shellX + shellW + 28, shellY + shellH + 28);
+
+            appendPreviewItem({
+                className: 'preview-item composer-shell',
+                x: shellX,
+                y: shellY,
+                w: shellW,
+                h: shellH,
+                label: ''
+            });
+            for (let line = 1; line <= cols; line++) {
+                const label = String(line).padStart(3, '0');
+                appendPreviewItem({
+                    className: 'preview-item axis-label',
+                    x: gridX + (line - 1) * (cellW + gap),
+                    y: lineLabelY,
+                    w: cellW,
+                    h: 22,
+                    label
+                });
+            }
+
+            for (let row = 1; row <= rows; row++) {
+                const label = String(row).padStart(3, '0');
+                appendPreviewItem({
+                    className: 'preview-item axis-label',
+                    x: rowLabelX,
+                    y: gridY + (row - 1) * (cellH + gap),
+                    w: rowHeaderW - 6,
+                    h: cellH,
+                    label
+                });
+            }
+
+            for (let line = 1; line <= cols; line++) {
+                for (let row = 1; row <= rows; row++) {
+                    const key = getAreaSlotKey(line, row);
+                    const enabled = states[key] !== false;
+                    const title = `Line ${String(line).padStart(3, '0')} / Row ${String(row).padStart(3, '0')} - ${enabled ? 'Enabled' : 'Disabled'}`;
+                    appendPreviewItem({
+                        className: `preview-item slot ${enabled ? 'enabled' : 'disabled'}`,
+                        x: gridX + (line - 1) * (cellW + gap),
+                        y: gridY + (row - 1) * (cellH + gap),
+                        w: cellW,
+                        h: cellH,
+                        html: '',
+                        title,
+                        onClick: () => toggleAreaSlot(area, key)
+                    });
+                }
+            }
+
+            previewLabel.textContent = `${area.code} - ${cols} Line x ${rows} Row`;
+            activeTitle.textContent = `Area Composer: ${area.name}`;
+            activeSubtitle.textContent = zone
+                ? `Line dan row di bawah ini mewakili slot kendaraan. Klik cell untuk menandai enable atau disable.`
+                : 'Klik cell untuk menandai enable atau disable.';
+            zoneCountPill.textContent = `${state.yard.zones.length} Zone`;
+            areaCountPill.textContent = `${countAreas()} Area`;
+            templatePill.textContent = `${cols} Line x ${rows} Row`;
+            slotStatePill.textContent = `${counts.enabled} Enabled / ${counts.total} Slots`;
+            enableAllBtn.disabled = false;
+            disableAllBtn.disabled = false;
+            invertBtn.disabled = false;
+        }
+
+        function renderZonePreview(zone) {
+            setPreviewCanvasSize(1180, 760);
+            const areaCount = zone.areas.length;
+            appendPreviewItem({
+                className: 'preview-item boundary',
+                x: 8,
+                y: 8,
+                w: 760,
+                h: 480,
+                label: 'Yard Boundary'
+            });
+
+            appendPreviewItem({
+                className: 'preview-item zone',
+                x: 36,
+                y: 36,
+                w: 560,
+                h: 300,
+                html: `
+                    <div class="zone-card">
+                        <div class="zone-card-header">
+                            <div>
+                                <div class="zone-card-kicker">Zone Preview</div>
+                                <div class="zone-card-title">${zone.name}</div>
+                                <div class="zone-card-subtitle">${areaCount} area${areaCount === 1 ? '' : 's'} inside this zone</div>
+                            </div>
+                            <div class="zone-card-pill">${areaCount} Area${areaCount === 1 ? '' : 's'}</div>
+                        </div>
+                        <div class="zone-area-grid"></div>
+                    </div>
+                `
+            });
+
+            const zoneCard = previewEl.querySelector('.zone-card');
+            const areaGrid = zoneCard ? zoneCard.querySelector('.zone-area-grid') : null;
+            if (areaGrid) {
+                for (const area of zone.areas) {
+                    const card = document.createElement('div');
+                    card.className = 'area-card';
+                    card.innerHTML = `
+                        <div class="area-card-inner">
+                            <div class="area-card-title">${area.name}</div>
+                            <div class="area-card-meta">${area.code} - ${Math.max(1, Number(area.slotCols) || 1)} x ${Math.max(1, Number(area.slotRows) || 1)}</div>
+                        </div>
+                    `;
+                    areaGrid.appendChild(card);
+                }
+            }
+
+            previewLabel.textContent = `${zone.code} - ${zone.name}`;
+            activeTitle.textContent = zone.name;
+            activeSubtitle.textContent = `Zone "${zone.code}" dipilih. Ada ${areaCount} area di dalamnya.`;
+            zoneCountPill.textContent = `${state.yard.zones.length} Zone`;
+            areaCountPill.textContent = `${countAreas()} Area`;
+            templatePill.textContent = `${areaCount} Area`;
+            slotStatePill.textContent = 'Composer off';
+            enableAllBtn.disabled = true;
+            disableAllBtn.disabled = true;
+            invertBtn.disabled = true;
+        }
+
+        function renderYardOverview() {
+            setPreviewCanvasSize(1180, 760);
+            appendPreviewItem({
+                className: 'preview-item boundary',
+                x: 8,
+                y: 8,
+                w: 760,
+                h: 480,
+                label: 'Yard Boundary'
+            });
+
+            for (let i = 0; i < state.yard.zones.length; i++) {
+                const z = state.yard.zones[i];
+                appendPreviewItem({
+                    className: 'preview-item zone',
+                    x: 56 + (i % 2) * 230,
+                    y: 56 + Math.floor(i / 2) * 140,
+                    w: 200,
+                    h: 90,
+                    label: z.name
+                });
+            }
+
+            previewLabel.textContent = `${state.yard.code} - ${state.yard.name}`;
+            activeTitle.textContent = state.yard.name;
+            activeSubtitle.textContent = 'Master yard selected. Tambahkan zone lalu pilih area untuk masuk ke composer mode.';
+            zoneCountPill.textContent = `${state.yard.zones.length} Zone`;
+            areaCountPill.textContent = `${countAreas()} Area`;
+            templatePill.textContent = `${state.yard.zones.length} Zone`;
+            slotStatePill.textContent = 'Composer off';
+            enableAllBtn.disabled = true;
+            disableAllBtn.disabled = true;
+            invertBtn.disabled = true;
+        }
+
+        function renderPreview() {
+            const zone = getSelectedZone();
+            const area = getSelectedArea();
+
+            previewEl.querySelectorAll('.preview-item').forEach(node => node.remove());
+
+            if (area) {
+                renderAreaComposer(area, zone);
+                return;
+            }
+
+            if (zone) {
+                renderZonePreview(zone);
+                return;
+            }
+
+            renderYardOverview();
+        }
+
+        function renderTree() {
+            treeEl.innerHTML = '';
+
+            const yardGroup = document.createElement('div');
+            yardGroup.className = 'tree-group';
+            yardGroup.innerHTML = `
+                <div class="tree-group-head">
+                    <span>${state.yard.name}</span>
+                    <small>${state.yard.code}</small>
+                </div>
+                <div class="tree-group-body"></div>
+            `;
+            const body = yardGroup.querySelector('.tree-group-body');
+
+            const yardNode = document.createElement('button');
+            yardNode.type = 'button';
+            yardNode.className = 'tree-node';
+            yardNode.innerHTML = `
+                <div class="tree-node-row">
+                    <div class="tree-node-main">
+                        <div class="tree-node-title">${state.yard.name}</div>
+                        <small>${state.yard.description}</small>
+                    </div>
+                </div>
+            `;
+            yardNode.addEventListener('click', () => {
+                state.selected = { type: 'yard', zoneId: null, areaId: null };
+                render();
+            });
+            body.appendChild(yardNode);
+
+            const zoneWrap = document.createElement('div');
+            zoneWrap.className = 'indent';
+
+            for (const zone of state.yard.zones) {
+                const zoneNode = document.createElement('div');
+                zoneNode.className = 'tree-node' + (state.selected.zoneId === zone.id && !state.selected.areaId ? ' selected' : '');
+                zoneNode.innerHTML = `
+                    <div class="tree-node-row">
+                        <div class="tree-node-main">
+                            <div class="tree-node-title">${zone.name}</div>
+                            <small>${zone.code} | ${zone.areas.length} area</small>
+                        </div>
+                        <div class="tree-node-actions">
+                            <button type="button" class="tree-action-btn" title="Add area">+</button>
+                            <button type="button" class="tree-action-btn" title="Delete zone">×</button>
+                        </div>
+                    </div>
+                `;
+                const zoneAddBtn = zoneNode.querySelectorAll('.tree-action-btn')[0];
+                const zoneDeleteBtn = zoneNode.querySelectorAll('.tree-action-btn')[1];
+                zoneAddBtn.addEventListener('click', event => {
+                    event.stopPropagation();
+                    addAreaToZone(zone.id);
+                });
+                zoneDeleteBtn.addEventListener('click', event => {
+                    event.stopPropagation();
+                    deleteZone(zone.id);
+                });
+                zoneNode.addEventListener('click', () => selectZone(zone.id));
+                zoneWrap.appendChild(zoneNode);
+
+                const areaWrap = document.createElement('div');
+                areaWrap.className = 'indent';
+                for (const area of zone.areas) {
+                    const areaNode = document.createElement('div');
+                    areaNode.className = 'tree-node' + (state.selected.areaId === area.id ? ' selected' : '');
+                    areaNode.innerHTML = `
+                        <div class="tree-node-row">
+                            <div class="tree-node-main">
+                                <div class="tree-node-title">${area.name}</div>
+                                <small>${area.code} | ${area.slotCols || 1} Line x ${area.slotRows || 1} Row</small>
+                            </div>
+                            <div class="tree-node-actions">
+                                <button type="button" class="tree-action-btn" title="Delete area">×</button>
+                            </div>
+                        </div>
+                    `;
+                    const areaDeleteBtn = areaNode.querySelectorAll('.tree-action-btn')[0];
+                    areaDeleteBtn.addEventListener('click', event => {
+                        event.stopPropagation();
+                        deleteArea(zone.id, area.id);
+                    });
+                    areaNode.addEventListener('click', () => selectArea(zone.id, area.id));
+                    areaWrap.appendChild(areaNode);
+                }
+                zoneWrap.appendChild(areaWrap);
+            }
+
+            body.appendChild(zoneWrap);
+            treeEl.appendChild(yardGroup);
+        }
+
+        function renderJson() {
+            jsonPreview.value = JSON.stringify({
+                version: 1,
+                yard: state.yard
+            }, null, 2);
+        }
+
+        function render() {
+            renderTree();
+            renderPreview();
+            syncForm();
+            renderJson();
+        }
+
+        function saveJson() {
+            const blob = new Blob([jsonPreview.value], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'master-yard-layout.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function loadJson(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (data?.yard) {
+                state.yard = data.yard;
+                state.selected = { type: 'yard', zoneId: null, areaId: null };
+            }
+            render();
+            fileInput.value = '';
+        }
+
+        render();
+    </script>
+</body>
+</html>

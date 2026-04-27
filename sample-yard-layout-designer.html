@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Yard Layout Designer</title>
+    <style>
+        :root {
+            --paper: #ffffff;
+            --page: #f3f1ea;
+            --ink: #222222;
+            --muted: #6b6b6b;
+            --frame: #b8b3a5;
+            --line: #78726a;
+            --slot: #d9d8d1;
+            --slot-dark: #b6b4ac;
+            --slot-green: #8bc34a;
+            --slot-yellow: #f3e300;
+            --slot-red: #ef2d1f;
+            --slot-blue: #4b78d8;
+            --title-yellow: #fff300;
+            --cyan: #2ce7f4;
+            --shadow: 0 18px 40px rgba(40, 40, 40, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 42%),
+                linear-gradient(180deg, #f8f7f2 0%, var(--page) 100%);
+            font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+            overflow: auto;
+        }
+
+        .page {
+            min-width: 1220px;
+            padding: 24px;
+        }
+
+        .sheet {
+            width: min(1240px, calc(100vw - 48px));
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .board {
+            position: relative;
+            background: var(--paper);
+            border: 1px solid #d7d0c2;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .board-top {
+            height: 332px;
+            padding: 20px 20px 18px 76px;
+        }
+
+        .board-bottom {
+            height: 548px;
+            padding: 16px 20px 18px 76px;
+        }
+
+        .title-badge {
+            position: absolute;
+            left: 50px;
+            top: 14px;
+            display: inline-block;
+            padding: 2px 10px 4px;
+            background: var(--title-yellow);
+            color: #2f2f2f;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .stats {
+            position: absolute;
+            left: 274px;
+            top: 20px;
+            display: grid;
+            gap: 1px;
+            font-size: 8px;
+            line-height: 1.05;
+            color: #2d2d2d;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: 52px 36px;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-row span:first-child {
+            text-transform: uppercase;
+        }
+
+        .vertical-tag {
+            position: absolute;
+            left: 22px;
+            top: 80px;
+            width: 34px;
+            height: 182px;
+            background: var(--cyan);
+            border: 1px solid #111111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #111111;
+            font-size: 18px;
+            font-weight: 700;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            letter-spacing: 0.4px;
+        }
+
+        .canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .panel-frame {
+            position: absolute;
+            background: #ddddda;
+            border: 1px solid var(--line);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+            overflow: hidden;
+        }
+
+        .panel-frame.white {
+            background: #ffffff;
+        }
+
+        .panel-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 100%),
+                linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 100%);
+            background-size: 100% 100%, 100% 100%;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+
+        .slot-grid {
+            position: absolute;
+            inset: 0;
+        }
+
+        .slot {
+            position: absolute;
+            border: 1px solid rgba(72, 72, 72, 0.86);
+            background: var(--slot);
+            color: #232323;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: clip;
+            user-select: none;
+            letter-spacing: -0.1px;
+        }
+
+        .slot.dark {
+            background: var(--slot-dark);
+        }
+
+        .slot.green {
+            background: linear-gradient(180deg, #95d46a 0%, var(--slot-green) 100%);
+        }
+
+        .slot.yellow {
+            background: var(--slot-yellow);
+        }
+
+        .slot.red {
+            background: var(--slot-red);
+            color: #ffffff;
+        }
+
+        .slot.blue {
+            background: var(--slot-blue);
+            color: #ffffff;
+        }
+
+        .corner-dot {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ffbf00;
+            border: 2px solid #7a6100;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+
+        .triangle {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+            border-left: 20px solid #ffbf00;
+            filter: drop-shadow(0 0 0.2px rgba(122, 97, 0, 0.85));
+        }
+
+        .triangle.left {
+            border-left: none;
+            border-right: 20px solid #ffbf00;
+        }
+
+        .triangle.down {
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 20px solid #ffbf00;
+            border-bottom: none;
+        }
+
+        .red-square {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #f10000;
+        }
+
+        .gate-label {
+            position: absolute;
+            left: 50%;
+            bottom: 4px;
+            transform: translateX(-50%);
+            font-size: 15px;
+            font-weight: 700;
+            color: #313131;
+        }
+
+        .label-gardu {
+            position: absolute;
+            right: 125px;
+            top: 96px;
+            font-size: 22px;
+            font-weight: 600;
+            color: #444444;
+        }
+
+        .utility-block {
+            position: absolute;
+            width: 24px;
+            height: 30px;
+            background: linear-gradient(180deg, #6f8ed5 0%, #4369bf 100%);
+            border: 1px solid rgba(41, 59, 109, 0.9);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+        }
+
+        .utility-block::before {
+            content: "";
+            position: absolute;
+            left: 2px;
+            right: 2px;
+            top: 5px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .small-title {
+            position: absolute;
+            left: 84px;
+            top: 18px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #2f2f2f;
+            letter-spacing: 0.1px;
+        }
+
+        .stack-label {
+            position: absolute;
+            left: 54px;
+            top: 112px;
+            width: 56px;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            font-size: 12px;
+            font-weight: 700;
+            color: #222222;
+        }
+
+        .outline {
+            position: absolute;
+            border: 1px solid rgba(25, 25, 25, 0.55);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+        }
+
+        .footnote {
+            margin: 0 auto;
+            width: min(1240px, calc(100vw - 48px));
+            color: #6a665c;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .footnote strong {
+            color: #2f2c26;
+        }
+
+        @media (max-width: 1260px) {
+            .sheet,
+            .footnote {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="sheet">
+            <section class="board board-top" aria-label="Sample Yard Layout">
+                <div class="title-badge">Sample Yard Layout</div>
+                <div class="stats" aria-hidden="true">
+                    <div class="stats-row"><span>Capacity</span><span>265</span></div>
+                    <div class="stats-row"><span>Actual</span><span>280</span></div>
+                    <div class="stats-row"><span>Available</span><span>-15</span></div>
+                </div>
+                <div class="vertical-tag">LAYOUT AREA D - WSK</div>
+
+                <div class="canvas" id="topCanvas">
+                    <div class="corner-dot" style="left: 28px; top: 10px;"></div>
+                    <div class="triangle" style="left: 42px; top: 16px; transform: rotate(15deg);"></div>
+                    <div class="corner-dot" style="left: 28px; bottom: 14px;"></div>
+                    <div class="triangle left" style="left: 42px; bottom: 20px; transform: rotate(-16deg);"></div>
+                    <div class="triangle" style="right: 312px; top: 14px; transform: rotate(90deg);"></div>
+                    <div class="corner-dot" style="right: 286px; top: 12px;"></div>
+                    <div class="triangle" style="right: 10px; top: 155px; transform: rotate(180deg);"></div>
+                    <div class="red-square" style="right: 6px; top: 8px;"></div>
+                    <div class="red-square" style="right: 6px; bottom: 8px;"></div>
+
+                    <div class="panel-frame" style="left: 56px; top: 38px; width: 772px; height: 228px;">
+                        <div class="slot-grid" id="topMainGrid"></div>
+                    </div>
+
+                    <div class="panel-frame white" style="left: 848px; top: 38px; width: 296px; height: 160px;">
+                        <div class="label-gardu">GARDU</div>
+                    </div>
+
+                    <div class="panel-frame" style="left: 848px; top: 205px; width: 296px; height: 104px;">
+                        <div class="slot-grid" id="topRightGrid"></div>
+                    </div>
+
+                    <div class="gate-label">Gate</div>
+                </div>
+            </section>
+
+            <section class="board board-bottom" aria-label="Extended Yard Layout">
+                <div class="vertical-tag" style="top: 118px; height: 186px;">LAYOUT AREA G - WSK</div>
+
+                <div class="canvas" id="bottomCanvas">
+                    <div class="small-title">Yard zoning preview</div>
+                    <div class="corner-dot" style="left: 26px; top: 218px; width: 18px; height: 18px;"></div>
+                    <div class="triangle" style="left: 38px; top: 226px; transform: rotate(15deg); border-top-width: 12px; border-bottom-width: 12px; border-left-width: 17px;"></div>
+                    <div class="corner-dot" style="left: 22px; bottom: 18px; width: 18px; height: 18px;"></div>
+                    <div class="triangle left" style="left: 36px; bottom: 24px; transform: rotate(-12deg); border-top-width: 12px; border-bottom-width: 12px; border-right-width: 17px;"></div>
+                    <div class="triangle down" style="right: 12px; bottom: 12px; transform: rotate(0deg);"></div>
+                    <div class="red-square" style="right: 4px; top: 18px;"></div>
+                    <div class="red-square" style="right: 4px; bottom: 12px;"></div>
+
+                    <div class="panel-frame" style="left: 32px; top: 12px; width: 244px; height: 280px;">
+                        <div class="slot-grid" id="bottomLeftGrid"></div>
+                    </div>
+
+                    <div class="panel-frame" style="left: 274px; top: 176px; width: 902px; height: 116px;">
+                        <div class="slot-grid" id="bottomBandGrid"></div>
+                    </div>
+
+                    <div class="panel-frame" style="left: 32px; top: 330px; width: 1144px; height: 136px;">
+                        <div class="slot-grid" id="bottomLaneGrid"></div>
+                    </div>
+
+                    <div class="utility-block" style="left: 16px; top: 38px;"></div>
+                    <div class="utility-block" style="left: 109px; top: 490px; width: 28px; height: 22px;"></div>
+                    <div class="utility-block" style="left: 311px; top: 486px; width: 12px; height: 12px;"></div>
+                    <div class="utility-block" style="left: 657px; top: 486px; width: 12px; height: 12px;"></div>
+                    <div class="utility-block" style="left: 1000px; top: 486px; width: 12px; height: 12px;"></div>
+
+                    <div class="stack-label">Warehouse</div>
+                </div>
+            </section>
+        </div>
+
+        <div class="footnote">
+            <strong>Preview:</strong> file ini sengaja dibuat sebagai mockup HTML mandiri yang mendekati gaya gambar referensi.
+            Slot, area, dan blok utilitas digambar otomatis agar mudah dikembangkan menjadi designer interaktif berikutnya.
+        </div>
+    </div>
+
+    <script>
+        function createSlotGrid(container, options) {
+            const parent = document.getElementById(container);
+            const {
+                x = 0,
+                y = 0,
+                cols = 10,
+                rows = 4,
+                cellWidth = 22,
+                cellHeight = 12,
+                gapX = 1,
+                gapY = 1,
+                prefixList = ["TC", "ES", "TCH", "J7E", "OS", "TS"],
+                labelMode = "dense",
+                statusPattern = () => "dark"
+            } = options;
+
+            const states = {
+                dark: "dark",
+                green: "green",
+                yellow: "yellow",
+                red: "red",
+                blue: "blue"
+            };
+
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const slot = document.createElement("div");
+                    const prefix = prefixList[(row * 3 + col) % prefixList.length];
+                    const number = String(4000 + ((row + 1) * 137 + (col + 1) * 19) % 6000).padStart(4, "0");
+                    const styleKey = states[statusPattern(row, col)] || "dark";
+
+                    slot.className = `slot ${styleKey}`;
+                    slot.style.left = `${x + col * (cellWidth + gapX)}px`;
+                    slot.style.top = `${y + row * (cellHeight + gapY)}px`;
+                    slot.style.width = `${cellWidth}px`;
+                    slot.style.height = `${cellHeight}px`;
+                    slot.textContent = labelMode === "dense" ? `${prefix} ${number}` : number;
+                    parent.appendChild(slot);
+                }
+            }
+        }
+
+        createSlotGrid("topMainGrid", {
+            x: 4,
+            y: 4,
+            cols: 31,
+            rows: 13,
+            cellWidth: 22,
+            cellHeight: 11,
+            gapX: 2,
+            gapY: 2,
+            prefixList: ["TC", "ES", "TCH", "J7E", "OS", "TS"],
+            statusPattern(row, col) {
+                if ((row + col) % 19 === 0) return "green";
+                if ((row + col) % 31 === 0) return "yellow";
+                if ((row + col) % 47 === 0) return "red";
+                return "dark";
+            }
+        });
+
+        createSlotGrid("topRightGrid", {
+            x: 6,
+            y: 6,
+            cols: 6,
+            rows: 5,
+            cellWidth: 44,
+            cellHeight: 16,
+            gapX: 1,
+            gapY: 2,
+            prefixList: ["TC", "J7E", "ES", "OS"],
+            statusPattern(row, col) {
+                if (row === 0 && col === 2) return "green";
+                if ((row === 1 && col === 1) || (row === 3 && col === 0)) return "blue";
+                return "dark";
+            }
+        });
+
+        createSlotGrid("bottomLeftGrid", {
+            x: 8,
+            y: 8,
+            cols: 7,
+            rows: 16,
+            cellWidth: 30,
+            cellHeight: 14,
+            gapX: 1,
+            gapY: 1,
+            prefixList: ["TC", "TCH", "OS", "ES"],
+            statusPattern(row, col) {
+                if (row === 0 || row === 14) return "yellow";
+                if ((col === 1 || col === 5) && row % 5 === 0) return "red";
+                if ((row + col) % 8 === 0) return "blue";
+                return "dark";
+            }
+        });
+
+        createSlotGrid("bottomBandGrid", {
+            x: 10,
+            y: 12,
+            cols: 27,
+            rows: 5,
+            cellWidth: 32,
+            cellHeight: 15,
+            gapX: 1,
+            gapY: 1,
+            prefixList: ["TC", "ES", "J7E", "OS", "TCH"],
+            statusPattern(row, col) {
+                if (col % 6 === 0) return "yellow";
+                if (row === 2 && col % 8 === 4) return "green";
+                if (row === 4 && col % 9 === 3) return "blue";
+                return "dark";
+            }
+        });
+
+        createSlotGrid("bottomLaneGrid", {
+            x: 8,
+            y: 18,
+            cols: 33,
+            rows: 5,
+            cellWidth: 32,
+            cellHeight: 16,
+            gapX: 1,
+            gapY: 1,
+            prefixList: ["TC", "ES", "J7E", "OS", "TCH", "TS"],
+            statusPattern(row, col) {
+                if ((row === 0 && col % 5 === 0) || (row === 4 && col % 7 === 2)) return "yellow";
+                if (row === 2 && col % 11 === 5) return "red";
+                if (row === 1 && col % 10 === 4) return "green";
+                return "dark";
+            }
+        });
+    </script>
+</body>
+</html>
