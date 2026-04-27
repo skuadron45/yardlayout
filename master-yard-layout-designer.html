@@ -1545,6 +1545,33 @@
             render();
         }
 
+        function getNextAreaSequence(zone) {
+            const existing = Array.isArray(zone?.areas) ? zone.areas : [];
+            let highest = 0;
+
+            for (const area of existing) {
+                const code = String(area?.code || '');
+                const match = code.match(/A(\d+)$/i);
+                if (!match) continue;
+                highest = Math.max(highest, Number(match[1]) || 0);
+            }
+
+            return highest + 1;
+        }
+
+        function buildAreaCode(zone, sequence) {
+            return `${zone.code}-A${sequence}`;
+        }
+
+        function buildAreaNameFromCode(code) {
+            const text = String(code || '').trim();
+            const match = text.match(/A(\d+)$/i);
+            if (match) {
+                return `Area A${match[1]}`;
+            }
+            return text ? `Area ${text}` : 'Area';
+        }
+
         function addAreaToZone(zoneId, afterAreaId = null) {
             const zone = state.yard.zones.find(entry => entry.id === zoneId);
             if (!zone) return null;
@@ -1553,10 +1580,13 @@
                 ? Math.max(0, zone.areas.findIndex(area => area.id === afterAreaId) + 1)
                 : zone.areas.length;
 
+            const sequence = getNextAreaSequence(zone);
+            const code = buildAreaCode(zone, sequence);
+
             const area = {
                 id: state.nextId++,
-                name: `Area ${zone.code}-${zone.areas.length + 1}`,
-                code: `${zone.code}-A${zone.areas.length + 1}`,
+                name: buildAreaNameFromCode(code),
+                code,
                 type: 'area',
                 width: 260,
                 height: 140,
@@ -1650,6 +1680,7 @@
 
             area.name = fields.areaName.value;
             area.code = fields.areaCode.value;
+            area.name = buildAreaNameFromCode(area.code);
             area.slotCols = Math.max(1, Number(fields.slotCols.value) || 1);
             area.slotRows = Math.max(1, Number(fields.slotRows.value) || 1);
             area.note = fields.areaNote.value;
