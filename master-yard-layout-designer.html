@@ -6,21 +6,21 @@
     <title>Master Yard Layout Designer</title>
     <style>
         :root {
-            --bg: #f5f2ea;
+            --bg: #f3f6fb;
             --paper: #ffffff;
-            --panel: #fbfaf6;
-            --ink: #1f1f1f;
-            --muted: #6c665d;
-            --line: #d9d2c4;
-            --line-strong: #bcae8d;
-            --accent: #ffea00;
-            --accent-soft: #fff6a8;
-            --cyan: #29dff0;
-            --shadow: 0 16px 34px rgba(32, 26, 18, 0.12);
-            --slot: #e7ebe5;
-            --zone: #d9d7cf;
-            --area: #cbc5bb;
-            --template: #f3f0e7;
+            --panel: #ffffff;
+            --ink: #172033;
+            --muted: #6f7b91;
+            --line: #d9e3f0;
+            --line-strong: #1f4d93;
+            --accent: #1f4d93;
+            --accent-soft: #eaf2ff;
+            --cyan: #5f86cf;
+            --shadow: 0 10px 24px rgba(18, 42, 83, 0.08);
+            --slot: #edf4fb;
+            --zone: #f5f8fc;
+            --area: #e9eff6;
+            --template: #f7f9fc;
         }
 
         * {
@@ -34,11 +34,11 @@
 
         body {
             margin: 0;
-            font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+            font-family: "Segoe UI", Inter, Arial, sans-serif;
             color: var(--ink);
             background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0) 42%),
-                linear-gradient(180deg, #f9f7f1 0%, var(--bg) 100%);
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 42%),
+                linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
             overflow: hidden;
         }
 
@@ -61,10 +61,10 @@
             justify-content: space-between;
             align-items: center;
             gap: 16px;
-            padding: 16px 20px 12px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(6px);
+            padding: 14px 20px 12px;
+            border-bottom: 1px solid #dbe5f2;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
         }
 
         .brand {
@@ -75,11 +75,11 @@
         }
 
         .brand .title {
-            padding: 2px 8px 4px;
-            background: var(--accent);
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 900;
             line-height: 1;
+            color: var(--accent);
+            letter-spacing: 0.1px;
         }
 
         .brand .subtitle {
@@ -97,16 +97,17 @@
             height: 34px;
             padding: 0 12px;
             border-radius: 8px;
-            border: 1px solid #cfc6b5;
-            background: linear-gradient(180deg, #ffffff, #f0e9da);
-            color: #232323;
+            border: 1px solid #cdd8ea;
+            background: linear-gradient(180deg, #ffffff, #f4f8fe);
+            color: var(--accent);
             cursor: pointer;
         }
 
         .btn.primary {
-            background: linear-gradient(180deg, #fff6bc, #ffe65a);
-            border-color: #d6c238;
-            font-weight: 800;
+            background: linear-gradient(180deg, #244f92, #183a73);
+            border-color: #183a73;
+            color: #ffffff;
+            font-weight: 700;
         }
 
         .workspace {
@@ -119,10 +120,10 @@
         }
 
         .panel {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid #d9e3f0;
             border-radius: 16px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 8px 20px rgba(22, 44, 84, 0.06);
             overflow: hidden;
             min-height: 0;
             height: 100%;
@@ -130,8 +131,8 @@
 
         .panel-head {
             padding: 14px 16px 10px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-            background: linear-gradient(180deg, #ffffff, #f6f2e7);
+            border-bottom: 1px solid #e3ebf6;
+            background: #ffffff;
         }
 
         .panel-title {
@@ -155,9 +156,9 @@
         }
 
         .tree-group {
-            border: 1px solid #ddd3c0;
+            border: 1px solid #d5dfec;
             border-radius: 14px;
-            background: linear-gradient(180deg, #fff, #f5f1e7);
+            background: #ffffff;
             overflow: hidden;
         }
 
@@ -167,8 +168,8 @@
             justify-content: space-between;
             gap: 8px;
             padding: 8px 10px;
-            background: linear-gradient(180deg, #fffdf7, #f2edde);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: #f7faff;
+            border-bottom: 1px solid #e4edf9;
             font-weight: 800;
         }
 
@@ -180,7 +181,7 @@
 
         .tree-node {
             width: 100%;
-            border: 1px solid #d9d1bf;
+            border: 1px solid #d6e0ee;
             border-radius: 12px;
             background: #ffffff;
             padding: 8px 10px;
@@ -191,9 +192,9 @@
         }
 
         .tree-node.selected {
-            border-color: #bcae2f;
-            box-shadow: 0 0 0 2px rgba(255, 234, 0, 0.22);
-            background: #fffdea;
+            border-color: #1f4d93;
+            box-shadow: 0 0 0 2px rgba(31, 77, 147, 0.14);
+            background: #f4f8ff;
         }
 
         .tree-node small {
@@ -229,10 +230,10 @@
         .tree-action-btn {
             width: 24px;
             height: 24px;
-            border: 1px solid #c8bfad;
+            border: 1px solid #cad6e6;
             border-radius: 7px;
-            background: linear-gradient(180deg, #ffffff, #f1ece2);
-            color: #2f2a21;
+            background: linear-gradient(180deg, #ffffff, #f5f8fc);
+            color: var(--accent);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -243,8 +244,8 @@
         }
 
         .tree-action-btn:hover {
-            border-color: #a99d83;
-            background: linear-gradient(180deg, #fffdf6, #eae2cf);
+            border-color: #9db1d2;
+            background: linear-gradient(180deg, #ffffff, #edf4fd);
         }
 
         .hidden {
@@ -254,7 +255,7 @@
         .indent {
             margin-left: 8px;
             padding-left: 8px;
-            border-left: 2px solid rgba(0, 0, 0, 0.08);
+            border-left: 2px solid rgba(31, 77, 147, 0.12);
             display: grid;
             gap: 6px;
         }
@@ -272,8 +273,8 @@
             gap: 10px;
             align-items: center;
             padding: 12px 14px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-            background: linear-gradient(180deg, #fffefb, #f5efe1);
+            border-bottom: 1px solid #dbe5f2;
+            background: #ffffff;
             flex-wrap: wrap;
         }
 
@@ -327,9 +328,9 @@
             gap: 6px;
             padding: 6px 10px;
             border-radius: 999px;
-            background: rgba(255, 234, 0, 0.18);
-            border: 1px solid rgba(181, 166, 43, 0.3);
-            color: #332f20;
+            background: #edf4ff;
+            border: 1px solid #c8d8f2;
+            color: #244f92;
             font-weight: 700;
         }
 
@@ -338,9 +339,9 @@
             overflow: auto;
             min-height: 0;
             background:
-                repeating-linear-gradient(0deg, transparent 0 23px, rgba(0, 0, 0, 0.05) 23px 24px),
-                repeating-linear-gradient(90deg, transparent 0 23px, rgba(0, 0, 0, 0.05) 23px 24px),
-                #fdfcf8;
+                repeating-linear-gradient(0deg, transparent 0 23px, rgba(31, 77, 147, 0.05) 23px 24px),
+                repeating-linear-gradient(90deg, transparent 0 23px, rgba(31, 77, 147, 0.05) 23px 24px),
+                #f8fbff;
         }
 
         .preview-caption {
@@ -352,8 +353,8 @@
             margin: 4px;
             width: 1180px;
             height: 760px;
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid #d7e1ee;
             overflow: hidden;
         }
 
@@ -361,14 +362,14 @@
             position: absolute;
             inset: 0;
             background:
-                repeating-linear-gradient(0deg, transparent 0 23px, rgba(0, 0, 0, 0.04) 23px 24px),
-                repeating-linear-gradient(90deg, transparent 0 23px, rgba(0, 0, 0, 0.04) 23px 24px);
+                repeating-linear-gradient(0deg, transparent 0 23px, rgba(31, 77, 147, 0.04) 23px 24px),
+                repeating-linear-gradient(90deg, transparent 0 23px, rgba(31, 77, 147, 0.04) 23px 24px);
             pointer-events: none;
         }
 
         .preview-item {
             position: absolute;
-            border: 1px solid rgba(40, 40, 40, 0.55);
+            border: 1px solid #9fb0c6;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -384,7 +385,7 @@
         }
 
         .preview-item.zone {
-            background: #efede7;
+            background: #f8fafc;
             border-radius: 14px;
             box-shadow: none;
             overflow: hidden;
@@ -393,15 +394,15 @@
         }
 
         .preview-item.area {
-            background: rgba(207, 202, 194, 0.95);
+            background: #eef4fb;
         }
 
         .preview-item.template {
-            background: rgba(243, 240, 231, 0.96);
+            background: #f7f9fc;
         }
 
         .preview-item.slot {
-            background: #e8ece6;
+            background: #edf4fb;
             font-size: 10px;
             font-weight: 700;
             cursor: pointer;
@@ -409,13 +410,13 @@
 
         .preview-item.slot.selected {
             border-width: 3px;
-            border-color: #8d7b2a;
+            border-color: #1f4d93;
             z-index: 4;
         }
 
         .preview-item.composer-shell {
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid #d7e1ee;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
         }
 
@@ -424,7 +425,7 @@
             background: transparent;
             font-size: 8px;
             font-weight: 800;
-            color: #4a4337;
+            color: #4f6285;
             justify-content: flex-start;
             align-items: center;
             line-height: 1;
@@ -436,12 +437,12 @@
         }
 
         .preview-item.axis-label {
-            border: 1px solid rgba(0, 0, 0, 0.14);
-            background: #f8f6ef;
+            border: 1px solid #d5dfec;
+            background: #f6f9fe;
             border-radius: 6px;
             font-size: 9px;
             font-weight: 700;
-            color: #2f2a21;
+            color: #27416e;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -456,41 +457,41 @@
         }
 
         .preview-item.axis-label.selected {
-            background: rgba(141, 123, 42, 0.12);
-            border-color: rgba(141, 123, 42, 0.35);
-            color: #2b2416;
+            background: #eaf2ff;
+            border-color: #1f4d93;
+            color: #1f4d93;
             font-weight: 900;
         }
 
         .preview-item.count-badge {
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 242, 233, 0.92));
+            border: 1px solid #d7e1ee;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(243, 247, 252, 0.96));
             border-radius: 999px;
             font-size: 9px;
             font-weight: 800;
-            color: #4a4337;
+            color: #27416e;
             padding: 0 8px;
             justify-content: center;
             align-items: center;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            box-shadow: 0 4px 10px rgba(64, 56, 43, 0.08);
+            box-shadow: 0 3px 8px rgba(22, 44, 84, 0.06);
         }
 
         .preview-item.area-chip {
-            border: 1px solid rgba(100, 92, 78, 0.22);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 242, 232, 0.9));
+            border: 1px solid #d7e1ee;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 253, 0.94));
             border-radius: 12px;
             font-size: 10px;
             font-weight: 700;
-            color: #3c372e;
+            color: #23395f;
             padding: 0;
             justify-content: flex-start;
             align-items: stretch;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            box-shadow: 0 6px 14px rgba(64, 56, 43, 0.08);
+            box-shadow: 0 5px 12px rgba(22, 44, 84, 0.06);
         }
 
         .zone-card {
@@ -501,8 +502,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            background: #f7f6f2;
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: #ffffff;
+            border: 1px solid #d7e1ee;
             border-radius: 12px;
         }
 
@@ -532,7 +533,7 @@
             font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.18em;
-            color: rgba(76, 67, 53, 0.76);
+            color: rgba(31, 77, 147, 0.78);
             margin-bottom: 4px;
         }
 
@@ -540,13 +541,13 @@
             font-size: 20px;
             line-height: 1;
             font-weight: 900;
-            color: #2f2a21;
+            color: #172033;
         }
 
         .zone-card-subtitle {
             margin-top: 4px;
             font-size: 12px;
-            color: #6c665d;
+            color: #6f7b91;
         }
 
         .zone-card-pill {
@@ -559,10 +560,10 @@
             padding: 0 12px;
             border-radius: 999px;
             background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.12);
+            border: 1px solid #d7e1ee;
             font-size: 10px;
             font-weight: 900;
-            color: #3d372a;
+            color: #244f92;
             letter-spacing: 0.04em;
             box-shadow: none;
         }
@@ -572,8 +573,8 @@
             position: relative;
             flex: 1 1 auto;
             min-height: 0;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            background: #ffffff;
+            border: 1px solid #e0e8f3;
+            background: #f8fbff;
             border-radius: 12px;
             overflow: auto;
             padding: 8px;
@@ -589,8 +590,8 @@
             height: 52px;
             flex: 0 0 auto;
             border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background: #f2f0ea;
+            border: 1px solid #d7e1ee;
+            background: #edf4fb;
             box-shadow: none;
             overflow: hidden;
         }
@@ -600,7 +601,7 @@
             position: absolute;
             inset: 0 auto 0 0;
             width: 5px;
-            background: #c5bfb1;
+            background: #9db1d2;
         }
 
         .area-card-inner {
@@ -616,14 +617,14 @@
         .area-card-title {
             font-size: 10px;
             font-weight: 900;
-            color: #2f2a21;
+            color: #172033;
             line-height: 1.1;
         }
 
         .area-card-meta {
             font-size: 9px;
             font-weight: 700;
-            color: #6c665d;
+            color: #6f7b91;
             letter-spacing: 0.03em;
         }
 
@@ -635,8 +636,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            background: #f7f6f2;
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: #ffffff;
+            border: 1px solid #d7e1ee;
             border-radius: 12px;
         }
 
@@ -657,7 +658,7 @@
             font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.18em;
-            color: rgba(76, 67, 53, 0.76);
+            color: rgba(31, 77, 147, 0.78);
             margin-bottom: 4px;
         }
 
@@ -665,13 +666,13 @@
             font-size: 20px;
             line-height: 1;
             font-weight: 900;
-            color: #2f2a21;
+            color: #172033;
         }
 
         .yard-card-subtitle {
             margin-top: 4px;
             font-size: 12px;
-            color: #6c665d;
+            color: #6f7b91;
         }
 
         .yard-card-pill {
@@ -684,10 +685,10 @@
             padding: 0 12px;
             border-radius: 999px;
             background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.12);
+            border: 1px solid #d7e1ee;
             font-size: 10px;
             font-weight: 900;
-            color: #3d372a;
+            color: #244f92;
             letter-spacing: 0.04em;
             box-shadow: none;
         }
@@ -696,7 +697,7 @@
             margin-top: 0;
             flex: 1 1 auto;
             min-height: 0;
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            border: 1px solid #d7e1ee;
             background: #ffffff;
             border-radius: 12px;
             overflow: auto;
@@ -714,7 +715,7 @@
             flex: 0 0 auto;
             border-radius: 10px;
             border: 1px solid rgba(0, 0, 0, 0.1);
-            background: #f2f0ea;
+            background: #edf4fb;
             overflow: hidden;
         }
 
@@ -723,7 +724,7 @@
             position: absolute;
             inset: 0 auto 0 0;
             width: 5px;
-            background: #c5bfb1;
+                background: #9db1d2;
         }
 
         .yard-zone-card-inner {
@@ -739,26 +740,26 @@
         .yard-zone-card-title {
             font-size: 11px;
             font-weight: 900;
-            color: #2f2a21;
+            color: #172033;
             line-height: 1.1;
         }
 
         .yard-zone-card-meta {
             font-size: 9px;
             font-weight: 700;
-            color: #6c665d;
+            color: #6f7b91;
             letter-spacing: 0.03em;
         }
 
         .preview-item.slot.enabled {
-            background: linear-gradient(180deg, #eaf4e5, #dbe9d4);
-            color: #1e3b1f;
+            background: linear-gradient(180deg, #eef5fb, #e0ebf7);
+            color: #183a73;
         }
 
         .preview-item.slot.disabled {
             background: linear-gradient(180deg, #f7f7f7, #ececec);
             border-style: dashed;
-            color: #8c8c8c;
+            color: #8b97aa;
         }
 
         .preview-item.gate {
@@ -771,41 +772,41 @@
             min-width: 170px;
             padding: 6px;
             border-radius: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.12);
+            border: 1px solid #d7e1ee;
             background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 18px 38px rgba(32, 26, 18, 0.18);
+            box-shadow: 0 14px 28px rgba(22, 44, 84, 0.12);
             display: grid;
             gap: 4px;
         }
 
         .slot-menu button {
             height: 32px;
-            border: 1px solid #d7ccb6;
+            border: 1px solid #cfd9e8;
             border-radius: 8px;
-            background: linear-gradient(180deg, #ffffff, #f4ecde);
-            color: #232323;
+            background: linear-gradient(180deg, #ffffff, #f4f8fe);
+            color: #22365a;
             text-align: left;
             padding: 0 10px;
             cursor: pointer;
         }
 
         .slot-menu button:hover {
-            background: linear-gradient(180deg, #fffdf8, #efe3cb);
+            background: linear-gradient(180deg, #ffffff, #eaf2ff);
         }
 
         .slot-menu .danger {
-            background: linear-gradient(180deg, #fff, #f8ecea);
-            border-color: #e0c0bc;
+            background: linear-gradient(180deg, #fff, #f7f1f6);
+            border-color: #d8bfd0;
         }
 
         .preview-label {
             display: inline-block;
             font-size: 10px;
             line-height: 1.2;
-            color: #2d2a24;
-            background: rgba(255, 255, 255, 0.9);
+            color: #1f4d93;
+            background: rgba(255, 255, 255, 0.95);
             padding: 3px 8px;
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            border: 1px solid #d7e1ee;
             border-radius: 999px;
             max-width: 420px;
             white-space: nowrap;
@@ -830,8 +831,8 @@
             gap: 6px;
             padding: 6px 10px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.82);
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #d7e1ee;
         }
 
         .swatch {
@@ -856,9 +857,9 @@
         }
 
         .section {
-            border: 1px solid #ddd3c0;
+            border: 1px solid #d7e1ee;
             border-radius: 14px;
-            background: linear-gradient(180deg, #fff, #f6f1e7);
+            background: #ffffff;
             padding: 12px;
         }
 
@@ -889,7 +890,7 @@
         .field label {
             font-size: 12px;
             font-weight: 700;
-            color: #3a362f;
+            color: #4f6285;
         }
 
         .field input,
@@ -897,11 +898,11 @@
         .field textarea {
             width: 100%;
             min-height: 34px;
-            border: 1px solid #cfc5b3;
+            border: 1px solid #d5dfec;
             border-radius: 10px;
             background: #fff;
             padding: 7px 10px;
-            color: #222;
+            color: #172033;
         }
 
         .field textarea {
@@ -994,10 +995,10 @@
                 </div>
                 <div class="preview-legend">
                     <span class="legend-item"><span class="swatch" style="background:#fff;"></span> Boundary</span>
-                    <span class="legend-item"><span class="swatch" style="background:#d9d9d4;"></span> Zone</span>
-                    <span class="legend-item"><span class="swatch" style="background:#cfcac1;"></span> Area</span>
-                    <span class="legend-item"><span class="swatch" style="background:#f3f0e7;"></span> Composer Shell</span>
-                    <span class="legend-item"><span class="swatch" style="background:#dbe9d4;"></span> Enabled Slot</span>
+                    <span class="legend-item"><span class="swatch" style="background:#f8fbff;"></span> Zone</span>
+                    <span class="legend-item"><span class="swatch" style="background:#eef4fb;"></span> Area</span>
+                    <span class="legend-item"><span class="swatch" style="background:#ffffff;"></span> Composer Shell</span>
+                    <span class="legend-item"><span class="swatch" style="background:#e0ebf7;"></span> Enabled Slot</span>
                     <span class="legend-item"><span class="swatch" style="background:#ececec;"></span> Disabled Slot</span>
                     <span class="legend-item"><span class="swatch" style="background:#ffca2c;"></span> Gate</span>
                 </div>
