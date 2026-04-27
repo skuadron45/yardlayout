@@ -56,6 +56,11 @@
             overflow: hidden;
         }
 
+        .workspace-shell {
+            min-height: 0;
+            overflow: auto;
+        }
+
         .topbar {
             display: flex;
             justify-content: space-between;
@@ -112,11 +117,12 @@
 
         .workspace {
             display: grid;
-            grid-template-columns: 300px minmax(700px, 1fr) 320px;
+            grid-template-columns: clamp(240px, 22vw, 300px) minmax(0, 1fr) clamp(240px, 22vw, 320px);
             gap: 14px;
             padding: 14px;
             min-height: 0;
-            overflow: hidden;
+            min-width: 1024px;
+            width: 100%;
         }
 
         .panel {
@@ -126,6 +132,7 @@
             box-shadow: 0 8px 20px rgba(22, 44, 84, 0.06);
             overflow: hidden;
             min-height: 0;
+            min-width: 0;
             height: 100%;
         }
 
@@ -966,9 +973,13 @@
             line-height: 1.6;
         }
 
-        @media (max-width: 1320px) {
-            .workspace {
-                grid-template-columns: 280px minmax(640px, 1fr) 300px;
+        @media (max-width: 1440px) {
+            .brand .subtitle {
+                font-size: 13px;
+            }
+
+            .topbar {
+                gap: 12px;
             }
         }
     </style>
@@ -988,132 +999,135 @@
             </div>
         </header>
 
-        <div class="workspace">
-            <aside class="panel">
-                <div class="panel-head">
-                    <div class="panel-title">Structure</div>
-                    <div class="panel-subtitle">Susun zona, lalu definisikan area di tiap zona.</div>
-                </div>
-                <div class="tree" id="tree"></div>
-            </aside>
+        <div class="workspace-shell">
+            <div class="workspace">
+                <aside class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">Structure</div>
+                        <div class="panel-subtitle">Susun zona, lalu definisikan area di tiap zona.</div>
+                    </div>
+                    <div class="tree" id="tree"></div>
+                </aside>
 
-            <main class="panel stage">
-                <div class="stage-toolbar">
-                    <div>
-                        <div class="panel-title" id="activeTitle">Preview</div>
-                        <div class="panel-subtitle" id="activeSubtitle">Pilih area untuk melihat komposisi line dan row.</div>
-                    </div>
-                    <div class="composer-actions">
-                        <button class="btn" id="enableAllBtn">Enable All</button>
-                        <button class="btn" id="disableAllBtn">Disable All</button>
-                        <button class="btn" id="invertBtn">Invert</button>
-                    </div>
-                    <div class="zoom-controls">
-                        <button class="btn" id="zoomOutBtn">-</button>
-                        <span class="pill zoom-pill" id="zoomValuePill">100%</span>
-                        <button class="btn" id="zoomInBtn">+</button>
-                    </div>
-                    <div class="meta">
-                        <span class="pill" id="zoneCountPill">0 Zone</span>
-                        <span class="pill" id="areaCountPill">0 Area</span>
-                        <span class="pill" id="templatePill">No composition</span>
-                        <span class="pill" id="slotStatePill">Composer off</span>
-                    </div>
-                </div>
-                <div class="preview-wrap">
-                    <div class="preview-caption">
-                        <div class="preview-label" id="previewLabel">No area selected</div>
-                    </div>
-                    <div class="preview" id="preview">
-                        <div class="preview-grid"></div>
-                    </div>
-                </div>
-                <div class="preview-legend" id="previewLegend"></div>
-            </main>
-
-            <aside class="panel inspector">
-                <div class="panel-head">
-                    <div class="panel-title">Inspector</div>
-                    <div class="panel-subtitle">Edit master yard, zone, dan area sesuai atributnya masing-masing.</div>
-                </div>
-                <div class="inspector-body">
-                    <div class="section">
-                        <div class="section-title">Master Yard</div>
-                        <div class="grid">
-                            <div class="row-2">
-                                <div class="field">
-                                    <label for="yardName">Yard Name</label>
-                                    <input id="yardName" type="text">
-                                </div>
-                                <div class="field">
-                                    <label for="yardCode">Yard Code</label>
-                                    <input id="yardCode" type="text">
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label for="yardDesc">Description</label>
-                                <textarea id="yardDesc"></textarea>
-                            </div>
+                <main class="panel stage">
+                    <div class="stage-toolbar">
+                        <div>
+                            <div class="panel-title" id="activeTitle">Preview</div>
+                            <div class="panel-subtitle" id="activeSubtitle">Pilih area untuk melihat komposisi line dan row.</div>
+                        </div>
+                        <div class="composer-actions">
+                            <button class="btn" id="enableAllBtn">Enable All</button>
+                            <button class="btn" id="disableAllBtn">Disable All</button>
+                            <button class="btn" id="invertBtn">Invert</button>
+                        </div>
+                        <div class="zoom-controls">
+                            <button class="btn" id="zoomOutBtn">-</button>
+                            <span class="pill zoom-pill" id="zoomValuePill">100%</span>
+                            <button class="btn" id="zoomInBtn">+</button>
+                        </div>
+                        <div class="meta">
+                            <span class="pill" id="zoneCountPill">0 Zone</span>
+                            <span class="pill" id="areaCountPill">0 Area</span>
+                            <span class="pill" id="templatePill">No composition</span>
+                            <span class="pill" id="slotStatePill">Composer off</span>
                         </div>
                     </div>
-
-                    <div class="section">
-                        <div class="section-title">Selected Node</div>
-                        <div class="grid" id="emptyState">
-                            <div class="tiny">Pilih zone atau area di struktur untuk mengedit properti.</div>
+                    <div class="preview-wrap">
+                        <div class="preview-caption">
+                            <div class="preview-label" id="previewLabel">No area selected</div>
                         </div>
-                        <div class="grid" id="formState" style="display:none;">
-                            <div class="tiny" id="selectedHint"></div>
-                            <div id="zoneForm" class="grid hidden">
-                                <div class="field">
-                                    <label for="zoneName">Zone Name</label>
-                                    <input id="zoneName" type="text">
-                                </div>
-                                <div class="field">
-                                    <label for="zoneCode">Zone Code</label>
-                                    <input id="zoneCode" type="text">
-                                </div>
-                                <div class="field">
-                                    <label for="zoneNote">Notes</label>
-                                    <textarea id="zoneNote"></textarea>
-                                </div>
-                            </div>
-                            <div id="areaForm" class="grid hidden">
-                                <div class="field">
-                                    <label for="areaName">Area Name</label>
-                                    <input id="areaName" type="text">
-                                </div>
-                                <div class="field">
-                                    <label for="areaCode">Area Code</label>
-                                    <input id="areaCode" type="text">
-                                </div>
+                        <div class="preview" id="preview">
+                            <div class="preview-grid"></div>
+                        </div>
+                    </div>
+                    <div class="preview-legend" id="previewLegend"></div>
+                </main>
+
+                <aside class="panel inspector">
+                    <div class="panel-head">
+                        <div class="panel-title">Inspector</div>
+                        <div class="panel-subtitle">Edit master yard, zone, dan area sesuai atributnya masing-masing.</div>
+                    </div>
+                    <div class="inspector-body">
+                        <div class="section">
+                            <div class="section-title">Master Yard</div>
+                            <div class="grid">
                                 <div class="row-2">
                                     <div class="field">
-                                        <label for="slotCols">Line Count</label>
-                                        <input id="slotCols" type="number" min="1">
+                                        <label for="yardName">Yard Name</label>
+                                        <input id="yardName" type="text">
                                     </div>
                                     <div class="field">
-                                        <label for="slotRows">Row Count</label>
-                                        <input id="slotRows" type="number" min="1">
+                                        <label for="yardCode">Yard Code</label>
+                                        <input id="yardCode" type="text">
                                     </div>
                                 </div>
                                 <div class="field">
-                                    <label for="areaNote">Notes</label>
-                                    <textarea id="areaNote"></textarea>
+                                    <label for="yardDesc">Description</label>
+                                    <textarea id="yardDesc"></textarea>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="section">
-                        <div class="section-title">JSON Preview</div>
-                        <textarea id="jsonPreview" class="json-box" readonly></textarea>
+                        <div class="section">
+                            <div class="section-title">Selected Node</div>
+                            <div class="grid" id="emptyState">
+                                <div class="tiny">Pilih zone atau area di struktur untuk mengedit properti.</div>
+                            </div>
+                            <div class="grid" id="formState" style="display:none;">
+                                <div class="tiny" id="selectedHint"></div>
+                                <div id="zoneForm" class="grid hidden">
+                                    <div class="field">
+                                        <label for="zoneName">Zone Name</label>
+                                        <input id="zoneName" type="text">
+                                    </div>
+                                    <div class="field">
+                                        <label for="zoneCode">Zone Code</label>
+                                        <input id="zoneCode" type="text">
+                                    </div>
+                                    <div class="field">
+                                        <label for="zoneNote">Notes</label>
+                                        <textarea id="zoneNote"></textarea>
+                                    </div>
+                                </div>
+                                <div id="areaForm" class="grid hidden">
+                                    <div class="field">
+                                        <label for="areaName">Area Name</label>
+                                        <input id="areaName" type="text">
+                                    </div>
+                                    <div class="field">
+                                        <label for="areaCode">Area Code</label>
+                                        <input id="areaCode" type="text">
+                                    </div>
+                                    <div class="row-2">
+                                        <div class="field">
+                                            <label for="slotCols">Line Count</label>
+                                            <input id="slotCols" type="number" min="1">
+                                        </div>
+                                        <div class="field">
+                                            <label for="slotRows">Row Count</label>
+                                            <input id="slotRows" type="number" min="1">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label for="areaNote">Notes</label>
+                                        <textarea id="areaNote"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">JSON Preview</div>
+                            <textarea id="jsonPreview" class="json-box" readonly></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="footer-note">
-                    Ini adalah mockup yang lebih ringan untuk master data. Layout detail penuh cukup muncul saat edit area.
-                </div>
-            </aside>
+                    <div class="footer-note">
+                        Ini adalah mockup yang lebih ringan untuk master data. Layout detail penuh cukup muncul saat edit area.
+                    </div>
+                </aside>
+            </div>
+        </div>
         </div>
     </div>
 
