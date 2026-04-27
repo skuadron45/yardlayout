@@ -345,6 +345,7 @@
             position: relative;
             overflow: auto;
             min-height: 0;
+            max-height: calc(100vh - 250px);
             background:
                 repeating-linear-gradient(0deg, transparent 0 23px, rgba(31, 77, 147, 0.05) 23px 24px),
                 repeating-linear-gradient(90deg, transparent 0 23px, rgba(31, 77, 147, 0.05) 23px 24px),
@@ -420,6 +421,28 @@
             position: absolute;
             inset: 0;
             z-index: 2;
+        }
+
+        .line-axis-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .line-axis-layer .preview-item.axis-label {
+            pointer-events: auto;
+        }
+
+        .row-axis-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .row-axis-layer .preview-item.axis-label {
+            pointer-events: auto;
         }
 
         .preview-item.slot.selected {
@@ -1192,6 +1215,7 @@
         let largeComposerRefreshPending = false;
         let jsonRenderFrame = 0;
         const areaSlotStats = new WeakMap();
+        const AXIS_VIRTUAL_THRESHOLD = 500;
 
         previewEl.addEventListener('click', event => {
             if (state.selected.type !== 'area') {
@@ -1253,6 +1277,7 @@
             scheduleLargeComposerRefresh();
         });
         window.addEventListener('resize', () => {
+            syncPreviewViewportLimit();
             scheduleLargeComposerRefresh();
         });
         document.addEventListener('click', closeSlotMenu);
@@ -1932,9 +1957,21 @@
             previewEl.style.height = `${finalHeight}px`;
         }
 
+        function syncPreviewViewportLimit() {
+            const wrapTop = previewWrap.getBoundingClientRect().top;
+            const available = Math.max(220, window.innerHeight - wrapTop - 16);
+            previewWrap.style.maxHeight = `${available}px`;
+        }
+
         function clearLargeComposerContext() {
             if (activeLargeComposer?.slotLayer) {
                 activeLargeComposer.slotLayer.remove();
+            }
+            if (activeLargeComposer?.lineLayer) {
+                activeLargeComposer.lineLayer.remove();
+            }
+            if (activeLargeComposer?.rowLayer) {
+                activeLargeComposer.rowLayer.remove();
             }
             activeLargeComposer = null;
         }
@@ -1945,9 +1982,137 @@
             window.requestAnimationFrame(() => {
                 largeComposerRefreshPending = false;
                 if (activeLargeComposer) {
+                    renderVisibleLargeComposerLineLabels();
+                    renderVisibleLargeComposerRowLabels();
                     renderVisibleLargeComposerSlots();
                 }
             });
+        }
+
+        function renderVisibleLargeComposerLineLabels() {
+            const context = activeLargeComposer;
+            if (!context?.lineLayer || !context.virtualLineLabels) return;
+
+            const { area, rows, cols, gridX, gridY, cellW, cellH, gap, compactMode, lineLayer } = context;
+            lineLayer.innerHTML = '';
+            const selectedSet = new Set(ensureAreaSelectedSlots(area));
+            const fragment = document.createDocumentFragment();
+
+            const scale = previewScale || 1;
+            const baseLeft = previewEl.offsetLeft || 0;
+            const viewportLeft = (previewWrap.scrollLeft - baseLeft) / scale;
+            const viewportRight = (previewWrap.scrollLeft + previewWrap.clientWidth - baseLeft) / scale;
+            const pitchX = cellW + gap;
+            const buffer = compactMode ? 1 : 3;
+
+            const firstLine = Math.max(1, Math.floor((viewportLeft - gridX) / pitchX) + 1 - buffer);
+            const lastLine = Math.min(cols, Math.ceil((viewportRight - gridX) / pitchX) + buffer);
+            if (lastLine < firstLine) return;
+
+            const lineLabelY = gridY - cellH - 4;
+            for (let line = firstLine; line <= lastLine; line++) {
+                const label = compactMode ? String(line) : String(line).padStart(3, '0');
+                let lineSelected = true;
+                for (let row = 1; row <= rows; row++) {
+                    if (!selectedSet.has(getAreaSlotKey(line, row))) {
+                        lineSelected = false;
+                        break;
+                    }
+                }
+                appendPreviewItem({
+                    className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${lineSelected ? ' selected' : ''}`,
+                    x: gridX + (line - 1) * pitchX,
+                    y: lineLabelY,
+                    w: cellW,
+                    h: cellH,
+                    label,
+                    title: `Select line ${label}`,
+                    onClick: event => {
+                        event.stopPropagation();
+                        selectAreaLine(area, line, Boolean(event.ctrlKey || event.metaKey));
+                        render(false);
+                    },
+                    onContextMenu: event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const lineKeysNow = getAreaLineSlotKeys(area, line);
+                        const currentSelection = getSelectedSlotKeys(area);
+                        if (currentSelection.length === 0) {
+                            selectAreaLine(area, line, false);
+                            render(false);
+                            openLineRowMenu(area, { x: event.clientX, y: event.clientY }, lineKeysNow);
+                            return;
+                        }
+
+                        openLineRowMenu(area, { x: event.clientX, y: event.clientY }, currentSelection);
+                    }
+                }, fragment);
+            }
+
+            lineLayer.appendChild(fragment);
+        }
+
+        function renderVisibleLargeComposerRowLabels() {
+            const context = activeLargeComposer;
+            if (!context?.rowLayer || !context.virtualRowLabels) return;
+
+            const { area, rows, cols, gridX, gridY, cellH, gap, rowHeaderW, compactMode, rowLayer } = context;
+            rowLayer.innerHTML = '';
+            const selectedSet = new Set(ensureAreaSelectedSlots(area));
+            const fragment = document.createDocumentFragment();
+
+            const scale = previewScale || 1;
+            const baseTop = previewEl.offsetTop || 0;
+            const viewportTop = (previewWrap.scrollTop - baseTop) / scale;
+            const viewportBottom = (previewWrap.scrollTop + previewWrap.clientHeight - baseTop) / scale;
+            const pitchY = cellH + gap;
+            const buffer = compactMode ? 1 : 3;
+
+            const firstRow = Math.max(1, Math.floor((viewportTop - gridY) / pitchY) + 1 - buffer);
+            const lastRow = Math.min(rows, Math.ceil((viewportBottom - gridY) / pitchY) + buffer);
+            if (lastRow < firstRow) return;
+
+            const rowLabelX = gridX - rowHeaderW - 4;
+            for (let row = firstRow; row <= lastRow; row++) {
+                const label = compactMode ? String(row) : String(row).padStart(3, '0');
+                let rowSelected = true;
+                for (let line = 1; line <= cols; line++) {
+                    if (!selectedSet.has(getAreaSlotKey(line, row))) {
+                        rowSelected = false;
+                        break;
+                    }
+                }
+                appendPreviewItem({
+                    className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${rowSelected ? ' selected' : ''}`,
+                    x: rowLabelX,
+                    y: gridY + (row - 1) * pitchY,
+                    w: rowHeaderW,
+                    h: cellH,
+                    label,
+                    title: `Select row ${label}`,
+                    onClick: event => {
+                        event.stopPropagation();
+                        selectAreaRow(area, row, Boolean(event.ctrlKey || event.metaKey));
+                        render(false);
+                    },
+                    onContextMenu: event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const rowKeysNow = getAreaRowSlotKeys(area, row);
+                        const currentSelection = getSelectedSlotKeys(area);
+                        if (currentSelection.length === 0) {
+                            selectAreaRow(area, row, false);
+                            render(false);
+                            openLineRowMenu(area, { x: event.clientX, y: event.clientY }, rowKeysNow);
+                            return;
+                        }
+
+                        openLineRowMenu(area, { x: event.clientX, y: event.clientY }, currentSelection);
+                    }
+                }, fragment);
+            }
+
+            rowLayer.appendChild(fragment);
         }
 
         function renderVisibleLargeComposerSlots() {
@@ -2023,6 +2188,7 @@
             syncComposerZoomFromArea(area);
             previewScale = composerZoom;
             clearLargeComposerContext();
+            syncPreviewViewportLimit();
             const states = ensureAreaSlotStates(area);
             const counts = countEnabledSlots(area);
             const selectedSet = new Set(ensureAreaSelectedSlots(area));
@@ -2048,6 +2214,8 @@
             const lineLabelY = gridY - cellH - headerGap;
             const rowLabelX = gridX - rowHeaderW - headerGap;
             const useVirtualSlots = totalSlots > 1000;
+            const virtualLineLabels = cols > AXIS_VIRTUAL_THRESHOLD;
+            const virtualRowLabels = rows > AXIS_VIRTUAL_THRESHOLD;
 
             setPreviewCanvasSize(shellX + shellW + 28, shellY + shellH + 28);
 
@@ -2059,88 +2227,102 @@
                 h: shellH,
                 label: ''
             });
-            for (let line = 1; line <= cols; line++) {
-                const label = compactMode ? String(line) : String(line).padStart(3, '0');
-                let lineSelected = true;
-                for (let row = 1; row <= rows; row++) {
-                    if (!selectedSet.has(getAreaSlotKey(line, row))) {
-                        lineSelected = false;
-                        break;
-                    }
-                }
-                appendPreviewItem({
-                    className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${lineSelected ? ' selected' : ''}`,
-                    x: gridX + (line - 1) * (cellW + gap),
-                    y: lineLabelY,
-                    w: cellW,
-                    h: cellH,
-                    label,
-                    title: `Select line ${label}`,
-                    onClick: event => {
-                        event.stopPropagation();
-                        selectAreaLine(area, line, Boolean(event.ctrlKey || event.metaKey));
-                        render(false);
-                    },
-                    onContextMenu: event => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        const lineKeysNow = getAreaLineSlotKeys(area, line);
-                        const currentSelection = getSelectedSlotKeys(area);
-                        if (currentSelection.length === 0) {
-                            selectAreaLine(area, line, false);
-                            render(false);
-                            openLineRowMenu(area, { x: event.clientX, y: event.clientY }, lineKeysNow);
-                            return;
+            if (!virtualLineLabels) {
+                for (let line = 1; line <= cols; line++) {
+                    const label = compactMode ? String(line) : String(line).padStart(3, '0');
+                    let lineSelected = true;
+                    for (let row = 1; row <= rows; row++) {
+                        if (!selectedSet.has(getAreaSlotKey(line, row))) {
+                            lineSelected = false;
+                            break;
                         }
-
-                        openLineRowMenu(area, { x: event.clientX, y: event.clientY }, currentSelection);
                     }
-                });
+                    appendPreviewItem({
+                        className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${lineSelected ? ' selected' : ''}`,
+                        x: gridX + (line - 1) * (cellW + gap),
+                        y: lineLabelY,
+                        w: cellW,
+                        h: cellH,
+                        label,
+                        title: `Select line ${label}`,
+                        onClick: event => {
+                            event.stopPropagation();
+                            selectAreaLine(area, line, Boolean(event.ctrlKey || event.metaKey));
+                            render(false);
+                        },
+                        onContextMenu: event => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            const lineKeysNow = getAreaLineSlotKeys(area, line);
+                            const currentSelection = getSelectedSlotKeys(area);
+                            if (currentSelection.length === 0) {
+                                selectAreaLine(area, line, false);
+                                render(false);
+                                openLineRowMenu(area, { x: event.clientX, y: event.clientY }, lineKeysNow);
+                                return;
+                            }
+
+                            openLineRowMenu(area, { x: event.clientX, y: event.clientY }, currentSelection);
+                        }
+                    });
+                }
             }
 
-            for (let row = 1; row <= rows; row++) {
-                const label = compactMode ? String(row) : String(row).padStart(3, '0');
-                let rowSelected = true;
-                for (let line = 1; line <= cols; line++) {
-                    if (!selectedSet.has(getAreaSlotKey(line, row))) {
-                        rowSelected = false;
-                        break;
-                    }
-                }
-                appendPreviewItem({
-                    className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${rowSelected ? ' selected' : ''}`,
-                    x: rowLabelX,
-                    y: gridY + (row - 1) * (cellH + gap),
-                    w: rowHeaderW,
-                    h: cellH,
-                    label,
-                    title: `Select row ${label}`,
-                    onClick: event => {
-                        event.stopPropagation();
-                        selectAreaRow(area, row, Boolean(event.ctrlKey || event.metaKey));
-                        render(false);
-                    },
-                    onContextMenu: event => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        const rowKeysNow = getAreaRowSlotKeys(area, row);
-                        const currentSelection = getSelectedSlotKeys(area);
-                        if (currentSelection.length === 0) {
-                            selectAreaRow(area, row, false);
-                            render(false);
-                            openLineRowMenu(area, { x: event.clientX, y: event.clientY }, rowKeysNow);
-                            return;
+            if (!virtualRowLabels) {
+                for (let row = 1; row <= rows; row++) {
+                    const label = compactMode ? String(row) : String(row).padStart(3, '0');
+                    let rowSelected = true;
+                    for (let line = 1; line <= cols; line++) {
+                        if (!selectedSet.has(getAreaSlotKey(line, row))) {
+                            rowSelected = false;
+                            break;
                         }
-
-                        openLineRowMenu(area, { x: event.clientX, y: event.clientY }, currentSelection);
                     }
-                });
+                    appendPreviewItem({
+                        className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${rowSelected ? ' selected' : ''}`,
+                        x: rowLabelX,
+                        y: gridY + (row - 1) * (cellH + gap),
+                        w: rowHeaderW,
+                        h: cellH,
+                        label,
+                        title: `Select row ${label}`,
+                        onClick: event => {
+                            event.stopPropagation();
+                            selectAreaRow(area, row, Boolean(event.ctrlKey || event.metaKey));
+                            render(false);
+                        },
+                        onContextMenu: event => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            const rowKeysNow = getAreaRowSlotKeys(area, row);
+                            const currentSelection = getSelectedSlotKeys(area);
+                            if (currentSelection.length === 0) {
+                                selectAreaRow(area, row, false);
+                                render(false);
+                                openLineRowMenu(area, { x: event.clientX, y: event.clientY }, rowKeysNow);
+                                return;
+                            }
+
+                            openLineRowMenu(area, { x: event.clientX, y: event.clientY }, currentSelection);
+                        }
+                    });
+                }
             }
 
             if (useVirtualSlots) {
                 const slotLayer = document.createElement('div');
                 slotLayer.className = 'slot-layer';
                 previewEl.appendChild(slotLayer);
+                const lineLayer = virtualLineLabels ? document.createElement('div') : null;
+                if (lineLayer) {
+                    lineLayer.className = 'line-axis-layer';
+                    previewEl.appendChild(lineLayer);
+                }
+                const rowLayer = virtualRowLabels ? document.createElement('div') : null;
+                if (rowLayer) {
+                    rowLayer.className = 'row-axis-layer';
+                    previewEl.appendChild(rowLayer);
+                }
                 activeLargeComposer = {
                     area,
                     states,
@@ -2152,8 +2334,19 @@
                     cellH,
                     gap,
                     compactMode,
+                    lineLayer,
+                    virtualLineLabels,
+                    rowHeaderW,
+                    rowLayer,
+                    virtualRowLabels,
                     slotLayer
                 };
+                if (virtualLineLabels) {
+                    renderVisibleLargeComposerLineLabels();
+                }
+                if (virtualRowLabels) {
+                    renderVisibleLargeComposerRowLabels();
+                }
                 renderVisibleLargeComposerSlots();
             } else {
                 for (let line = 1; line <= cols; line++) {
@@ -2211,6 +2404,7 @@
 
         function renderZonePreview(zone) {
             previewScale = 1;
+            syncPreviewViewportLimit();
             setPreviewCanvasSize(1180, 760, 1180, 760);
             updateZoomControls(false);
             const areaCount = zone.areas.length;
@@ -2274,6 +2468,7 @@
 
         function renderYardOverview() {
             previewScale = 1;
+            syncPreviewViewportLimit();
             setPreviewCanvasSize(1180, 760, 1180, 760);
             updateZoomControls(false);
             const zoneCount = state.yard.zones.length;
