@@ -373,7 +373,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: clamp(6px, calc(12px * var(--preview-scale, 1)), 12px);
             font-weight: 800;
             user-select: none;
         }
@@ -423,7 +423,7 @@
         .preview-item.axis-title {
             border: none;
             background: transparent;
-            font-size: 8px;
+            font-size: clamp(6px, calc(8px * var(--preview-scale, 1)), 11px);
             font-weight: 800;
             color: #4f6285;
             justify-content: flex-start;
@@ -440,20 +440,28 @@
             border: 1px solid #d5dfec;
             background: #f6f9fe;
             border-radius: 6px;
-            font-size: 9px;
+            font-size: clamp(6px, calc(9px * var(--preview-scale, 1)), 11px);
             font-weight: 700;
             color: #27416e;
             display: flex;
             align-items: center;
             justify-content: center;
             line-height: 1;
-            letter-spacing: 0.04em;
-            padding: 0 6px;
+            letter-spacing: 0.01em;
+            font-variant-numeric: tabular-nums;
+            padding: 0 clamp(2px, calc(4px * var(--preview-scale, 1)), 6px);
             box-sizing: border-box;
         }
 
         .preview-item.axis-label.clickable {
             cursor: pointer;
+        }
+
+        .preview-item.axis-label.compact {
+            font-size: clamp(4px, calc(7px * var(--preview-scale, 1)), 9px);
+            letter-spacing: 0;
+            border-radius: 4px;
+            padding: 0 clamp(1px, calc(2px * var(--preview-scale, 1)), 3px);
         }
 
         .preview-item.axis-label.selected {
@@ -467,7 +475,7 @@
             border: 1px solid #d7e1ee;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(243, 247, 252, 0.96));
             border-radius: 999px;
-            font-size: 9px;
+            font-size: clamp(6px, calc(9px * var(--preview-scale, 1)), 12px);
             font-weight: 800;
             color: #27416e;
             padding: 0 8px;
@@ -482,7 +490,7 @@
             border: 1px solid #d7e1ee;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 253, 0.94));
             border-radius: 12px;
-            font-size: 10px;
+            font-size: clamp(6px, calc(10px * var(--preview-scale, 1)), 12px);
             font-weight: 700;
             color: #23395f;
             padding: 0;
@@ -738,14 +746,14 @@
         }
 
         .yard-zone-card-title {
-            font-size: 11px;
+            font-size: clamp(8px, calc(11px * var(--preview-scale, 1)), 15px);
             font-weight: 900;
             color: #172033;
             line-height: 1.1;
         }
 
         .yard-zone-card-meta {
-            font-size: 9px;
+            font-size: clamp(8px, calc(9px * var(--preview-scale, 1)), 13px);
             font-weight: 700;
             color: #6f7b91;
             letter-spacing: 0.03em;
@@ -1742,6 +1750,7 @@
         function appendPreviewItem(item) {
             const div = document.createElement('div');
             div.className = item.className;
+            div.style.setProperty('--preview-scale', String(previewScale));
             div.style.left = `${Math.round(item.x * previewScale)}px`;
             div.style.top = `${Math.round(item.y * previewScale)}px`;
             div.style.width = `${Math.round(item.w * previewScale)}px`;
@@ -1789,10 +1798,11 @@
             const rows = Math.max(1, Number(area.slotRows) || 1);
             const shellX = 16;
             const shellY = 18;
-            const pad = 10;
-            const rowHeaderW = 62;
-            const colHeaderH = 26;
-            const gap = 4;
+            const compactMode = previewScale <= 0.5;
+            const pad = compactMode ? 8 : 10;
+            const rowHeaderW = compactMode ? 56 : 62;
+            const colHeaderH = compactMode ? 22 : 26;
+            const gap = compactMode ? 2 : 4;
             const cellW = 46;
             const cellH = 24;
             const gridW = cols * cellW + Math.max(0, cols - 1) * gap;
@@ -1816,11 +1826,11 @@
                 label: ''
             });
             for (let line = 1; line <= cols; line++) {
-                const label = String(line).padStart(3, '0');
+                const label = compactMode ? String(line) : String(line).padStart(3, '0');
                 const lineKeys = getAreaLineSlotKeys(area, line);
                 const lineSelected = lineKeys.length > 0 && lineKeys.every(key => isSlotSelected(area, key));
                 appendPreviewItem({
-                    className: `preview-item axis-label clickable${lineSelected ? ' selected' : ''}`,
+                    className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${lineSelected ? ' selected' : ''}`,
                     x: gridX + (line - 1) * (cellW + gap),
                     y: lineLabelY,
                     w: cellW,
@@ -1850,11 +1860,11 @@
             }
 
             for (let row = 1; row <= rows; row++) {
-                const label = String(row).padStart(3, '0');
+                const label = compactMode ? String(row) : String(row).padStart(3, '0');
                 const rowKeys = getAreaRowSlotKeys(area, row);
                 const rowSelected = rowKeys.length > 0 && rowKeys.every(key => isSlotSelected(area, key));
                 appendPreviewItem({
-                    className: `preview-item axis-label clickable${rowSelected ? ' selected' : ''}`,
+                    className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${rowSelected ? ' selected' : ''}`,
                     x: rowLabelX,
                     y: gridY + (row - 1) * (cellH + gap),
                     w: rowHeaderW,
