@@ -1737,7 +1737,6 @@
                     const enabled = states[key] !== false;
                     const selected = isSlotSelected(area, key);
                     const title = `Line ${String(line).padStart(3, '0')} / Row ${String(row).padStart(3, '0')} - ${enabled ? 'Enabled' : 'Disabled'}`;
-                    let clickTimer = null;
                     appendPreviewItem({
                         className: `preview-item slot ${enabled ? 'enabled' : 'disabled'}${selected ? ' selected' : ''}`,
                         x: gridX + (line - 1) * (cellW + gap),
@@ -1748,22 +1747,12 @@
                         title,
                         onClick: event => {
                             event.stopPropagation();
-                            if (clickTimer) {
-                                clearTimeout(clickTimer);
-                            }
-                            clickTimer = window.setTimeout(() => {
-                                selectAreaSlot(area, key, Boolean(event.ctrlKey || event.metaKey));
-                                render(false);
-                                clickTimer = null;
-                            }, 280);
+                            selectAreaSlot(area, key, Boolean(event.ctrlKey || event.metaKey));
+                            render(false);
                         },
                         onContextMenu: event => {
                             event.preventDefault();
                             event.stopPropagation();
-                            if (clickTimer) {
-                                clearTimeout(clickTimer);
-                                clickTimer = null;
-                            }
 
                             const selected = getSelectedSlotKeys(area);
                             if (!selected.includes(key) || selected.length === 0) {
