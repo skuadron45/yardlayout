@@ -1126,34 +1126,9 @@
                 name: 'Main Yard',
                 code: 'YRD-001',
                 description: 'Master data yard layout untuk composition per area.',
-                zones: [
-                    {
-                        id: 11,
-                        name: 'Zone A',
-                        code: 'ZA',
-                        type: 'zone',
-                        width: 420,
-                        height: 280,
-                        note: 'Zona awal untuk area utama.',
-                        areas: [
-                            {
-                                id: 111,
-                                name: 'Area A1',
-                                code: 'ZA-A1',
-                                type: 'area',
-                                width: 260,
-                                height: 140,
-                                slotCols: 10,
-                                slotRows: 10,
-                                zoom: 1,
-                                slotStates: {},
-                                note: 'Area default 10 x 10.'
-                            }
-                        ]
-                    }
-                ]
+                zones: []
             },
-            selected: { type: 'area', zoneId: 11, areaId: 111 },
+            selected: { type: 'yard', zoneId: null, areaId: null },
             nextId: 200
         };
 
@@ -1175,6 +1150,7 @@
         const enableAllBtn = document.getElementById('enableAllBtn');
         const disableAllBtn = document.getElementById('disableAllBtn');
         const invertBtn = document.getElementById('invertBtn');
+        const addAreaBtn = document.getElementById('addAreaBtn');
         const jsonPreview = document.getElementById('jsonPreview');
         const fileInput = document.getElementById('fileInput');
         const emptyState = document.getElementById('emptyState');
@@ -1229,7 +1205,7 @@
         };
 
         document.getElementById('addZoneBtn').addEventListener('click', addZone);
-        document.getElementById('addAreaBtn').addEventListener('click', addArea);
+        addAreaBtn.addEventListener('click', addArea);
         document.getElementById('saveBtn').addEventListener('click', saveJson);
         document.getElementById('loadBtn').addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', loadJson);
@@ -2109,7 +2085,7 @@
 
             const yardNode = document.createElement('button');
             yardNode.type = 'button';
-            yardNode.className = 'tree-node';
+            yardNode.className = 'tree-node' + (state.selected.type === 'yard' ? ' selected' : '');
             yardNode.innerHTML = `
                 <div class="tree-node-row">
                     <div class="tree-node-main">
@@ -2198,6 +2174,7 @@
             renderPreview();
             syncForm();
             renderJson();
+            addAreaBtn.disabled = state.yard.zones.length === 0;
         }
 
         function saveJson() {
