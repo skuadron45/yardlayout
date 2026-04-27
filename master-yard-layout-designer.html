@@ -413,6 +413,13 @@
             font-size: 10px;
             font-weight: 700;
             cursor: pointer;
+            z-index: 3;
+        }
+
+        .slot-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
         }
 
         .preview-item.slot.selected {
@@ -425,6 +432,7 @@
             background: rgba(255, 255, 255, 0.98);
             border: 1px solid #d7e1ee;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+            z-index: 1;
         }
 
         .preview-item.axis-title {
@@ -458,6 +466,7 @@
             font-variant-numeric: tabular-nums;
             padding: 0 clamp(2px, calc(4px * var(--preview-scale, 1)), 6px);
             box-sizing: border-box;
+            z-index: 4;
         }
 
         .preview-item.axis-label.clickable {
@@ -1179,6 +1188,10 @@
         const ZOOM_MAX = 1.5;
         const ZOOM_STEP = 0.1;
         let slotMenuEl = null;
+        let activeLargeComposer = null;
+        let largeComposerRefreshPending = false;
+        let jsonRenderFrame = 0;
+        const areaSlotStats = new WeakMap();
 
         previewEl.addEventListener('click', event => {
             if (state.selected.type !== 'area') {
@@ -1235,7 +1248,13 @@
             event.preventDefault();
             adjustComposerZoom(event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP);
         }, { passive: false });
-        previewWrap.addEventListener('scroll', closeSlotMenu);
+        previewWrap.addEventListener('scroll', () => {
+            closeSlotMenu();
+            scheduleLargeComposerRefresh();
+        });
+        window.addEventListener('resize', () => {
+            scheduleLargeComposerRefresh();
+        });
         document.addEventListener('click', closeSlotMenu);
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
@@ -1309,26 +1328,101 @@
         function ensureAreaSlotStates(area) {
             const cols = Math.max(1, Number(area.slotCols) || 0);
             const rows = Math.max(1, Number(area.slotRows) || 0);
+            const signature = `${cols}x${rows}`;
+            if (area.slotStates && typeof area.slotStates === 'object' && area._slotStateSignature === signature) {
+                if (!areaSlotStats.has(area)) {
+                    const states = area.slotStates;
+                    let enabledCount = 0;
+                    for (const key of Object.keys(states)) {
+                        if (states[key] !== false) {
+                            enabledCount++;
+                        }
+                    }
+                    areaSlotStats.set(area, {
+                        total: cols * rows,
+                        enabled: enabledCount
+                    });
+                }
+                return area.slotStates;
+            }
             const previous = area.slotStates && typeof area.slotStates === 'object' ? area.slotStates : {};
             const next = {};
+            let enabledCount = 0;
 
             for (let line = 1; line <= cols; line++) {
                 for (let row = 1; row <= rows; row++) {
                     const key = getAreaSlotKey(line, row);
                     next[key] = previous[key] !== undefined ? previous[key] : true;
+                    if (next[key]) {
+                        enabledCount++;
+                    }
                 }
             }
 
             area.slotStates = next;
+            area._slotStateSignature = signature;
+            areaSlotStats.set(area, {
+                total: cols * rows,
+                enabled: enabledCount
+            });
             return next;
+        }
+
+        function getAreaSlotStats(area) {
+            if (!area) {
+                return { total: 0, enabled: 0 };
+            }
+
+            const cached = areaSlotStats.get(area);
+            if (cached) {
+                return cached;
+            }
+
+            const states = area.slotStates && typeof area.slotStates === 'object' ? area.slotStates : {};
+            const total = Object.keys(states).length;
+            let enabled = 0;
+            for (const key of Object.keys(states)) {
+                if (states[key] !== false) {
+                    enabled++;
+                }
+            }
+
+            const next = { total, enabled };
+            areaSlotStats.set(area, next);
+            return next;
+        }
+
+        function updateAreaSlotEnabledCount(area, delta) {
+            if (!area || !delta) return;
+            const stats = getAreaSlotStats(area);
+            const nextEnabled = Math.max(0, Math.min(stats.total, stats.enabled + delta));
+            areaSlotStats.set(area, {
+                total: stats.total,
+                enabled: nextEnabled
+            });
+        }
+
+        function setAreaSlotStats(area, total, enabled) {
+            if (!area) return;
+            const safeTotal = Math.max(0, Number(total) || 0);
+            const safeEnabled = Math.max(0, Math.min(safeTotal, Number(enabled) || 0));
+            areaSlotStats.set(area, {
+                total: safeTotal,
+                enabled: safeEnabled
+            });
         }
 
         function ensureAreaSelectedSlots(area) {
             const previous = Array.isArray(area.selectedSlotKeys) ? area.selectedSlotKeys : [];
             const slotStates = ensureAreaSlotStates(area);
+            const signature = area._slotStateSignature || '';
+            if (area._selectedSlotSignature === signature) {
+                return previous;
+            }
             const validKeys = new Set(Object.keys(slotStates));
             const next = previous.filter(key => validKeys.has(key));
             area.selectedSlotKeys = next;
+            area._selectedSlotSignature = signature;
             return next;
         }
 
@@ -1370,18 +1464,22 @@
         function setAreaSelectedSlots(area, keys) {
             const slotStates = ensureAreaSlotStates(area);
             const validKeys = new Set(Object.keys(slotStates));
+            const seen = new Set();
             const unique = [];
             for (const key of keys) {
-                if (validKeys.has(key) && !unique.includes(key)) {
+                if (validKeys.has(key) && !seen.has(key)) {
+                    seen.add(key);
                     unique.push(key);
                 }
             }
             area.selectedSlotKeys = unique;
+            area._selectedSlotSignature = area._slotStateSignature || '';
             return unique;
         }
 
         function clearAreaSelectedSlots(area) {
             area.selectedSlotKeys = [];
+            area._selectedSlotSignature = area?._slotStateSignature || '';
         }
 
         function selectAreaSlot(area, key, additive = false) {
@@ -1448,10 +1546,18 @@
             const selected = Array.isArray(targetKeys) && targetKeys.length > 0
                 ? targetKeys
                 : ensureAreaSelectedSlots(area);
+            let delta = 0;
             for (const key of selected) {
                 if (key in states) {
-                    states[key] = enabled;
+                    const next = Boolean(enabled);
+                    if (states[key] !== next) {
+                        states[key] = next;
+                        delta += next ? 1 : -1;
+                    }
                 }
+            }
+            if (delta) {
+                updateAreaSlotEnabledCount(area, delta);
             }
             render(false);
         }
@@ -1461,10 +1567,16 @@
             const selected = Array.isArray(targetKeys) && targetKeys.length > 0
                 ? targetKeys
                 : ensureAreaSelectedSlots(area);
+            let delta = 0;
             for (const key of selected) {
                 if (key in states) {
-                    states[key] = !states[key];
+                    const next = !states[key];
+                    states[key] = next;
+                    delta += next ? 1 : -1;
                 }
+            }
+            if (delta) {
+                updateAreaSlotEnabledCount(area, delta);
             }
             render(false);
         }
@@ -1524,8 +1636,11 @@
 
         function countEnabledSlots(area) {
             const states = ensureAreaSlotStates(area);
-            const total = Object.keys(states).length;
-            const enabled = Object.values(states).filter(Boolean).length;
+            const stats = getAreaSlotStats(area);
+            const total = stats.total || Object.keys(states).length;
+            const enabled = typeof stats.enabled === 'number'
+                ? stats.enabled
+                : Object.values(states).filter(Boolean).length;
             return { total, enabled, disabled: total - enabled };
         }
 
@@ -1533,9 +1648,11 @@
             const area = getSelectedArea();
             if (!area) return;
             const states = ensureAreaSlotStates(area);
-            for (const key of Object.keys(states)) {
+            const keys = Object.keys(states);
+            for (const key of keys) {
                 states[key] = enabled;
             }
+            setAreaSlotStats(area, keys.length, enabled ? keys.length : 0);
             render(false);
         }
 
@@ -1543,9 +1660,12 @@
             const area = getSelectedArea();
             if (!area) return;
             const states = ensureAreaSlotStates(area);
-            for (const key of Object.keys(states)) {
+            const keys = Object.keys(states);
+            for (const key of keys) {
                 states[key] = !states[key];
             }
+            const stats = getAreaSlotStats(area);
+            setAreaSlotStats(area, stats.total || keys.length, (stats.total || keys.length) - stats.enabled);
             render(false);
         }
 
@@ -1768,7 +1888,7 @@
             return slots;
         }
 
-        function appendPreviewItem(item) {
+        function appendPreviewItem(item, target = previewEl) {
             const div = document.createElement('div');
             div.className = item.className;
             div.style.setProperty('--preview-scale', String(previewScale));
@@ -1799,24 +1919,116 @@
                 div.addEventListener('contextmenu', item.onContextMenu);
             }
 
-            previewEl.appendChild(div);
+            target.appendChild(div);
             return div;
         }
 
-        function setPreviewCanvasSize(width, height) {
+        function setPreviewCanvasSize(width, height, minWidth = width, minHeight = height) {
             const scaledWidth = Math.ceil(width * previewScale);
             const scaledHeight = Math.ceil(height * previewScale);
-            previewEl.style.width = `${previewScale < 1 ? scaledWidth : Math.max(1180, scaledWidth)}px`;
-            previewEl.style.height = `${previewScale < 1 ? scaledHeight : Math.max(760, scaledHeight)}px`;
+            const finalWidth = previewScale < 1 ? scaledWidth : Math.max(minWidth, scaledWidth);
+            const finalHeight = previewScale < 1 ? scaledHeight : Math.max(minHeight, scaledHeight);
+            previewEl.style.width = `${finalWidth}px`;
+            previewEl.style.height = `${finalHeight}px`;
+        }
+
+        function clearLargeComposerContext() {
+            if (activeLargeComposer?.slotLayer) {
+                activeLargeComposer.slotLayer.remove();
+            }
+            activeLargeComposer = null;
+        }
+
+        function scheduleLargeComposerRefresh() {
+            if (!activeLargeComposer || largeComposerRefreshPending) return;
+            largeComposerRefreshPending = true;
+            window.requestAnimationFrame(() => {
+                largeComposerRefreshPending = false;
+                if (activeLargeComposer) {
+                    renderVisibleLargeComposerSlots();
+                }
+            });
+        }
+
+        function renderVisibleLargeComposerSlots() {
+            const context = activeLargeComposer;
+            if (!context?.slotLayer) return;
+
+            const { area, states, cols, rows, gridX, gridY, cellW, cellH, gap, compactMode, slotLayer } = context;
+            slotLayer.innerHTML = '';
+            const selectedSet = new Set(ensureAreaSelectedSlots(area));
+            const fragment = document.createDocumentFragment();
+
+            const scale = previewScale || 1;
+            const baseLeft = previewEl.offsetLeft || 0;
+            const baseTop = previewEl.offsetTop || 0;
+            const viewportLeft = (previewWrap.scrollLeft - baseLeft) / scale;
+            const viewportTop = (previewWrap.scrollTop - baseTop) / scale;
+            const viewportRight = (previewWrap.scrollLeft + previewWrap.clientWidth - baseLeft) / scale;
+            const viewportBottom = (previewWrap.scrollTop + previewWrap.clientHeight - baseTop) / scale;
+            const pitchX = cellW + gap;
+            const pitchY = cellH + gap;
+            const buffer = compactMode ? 1 : 2;
+
+            const firstLine = Math.max(1, Math.floor((viewportLeft - gridX) / pitchX) + 1 - buffer);
+            const lastLine = Math.min(cols, Math.ceil((viewportRight - gridX) / pitchX) + buffer);
+            const firstRow = Math.max(1, Math.floor((viewportTop - gridY) / pitchY) + 1 - buffer);
+            const lastRow = Math.min(rows, Math.ceil((viewportBottom - gridY) / pitchY) + buffer);
+            if (lastLine < firstLine || lastRow < firstRow) {
+                return;
+            }
+
+            for (let line = firstLine; line <= lastLine; line++) {
+                for (let row = firstRow; row <= lastRow; row++) {
+                    const key = getAreaSlotKey(line, row);
+                    const enabled = states[key] !== false;
+                    const selected = selectedSet.has(key);
+                    const title = `Line ${String(line).padStart(3, '0')} / Row ${String(row).padStart(3, '0')} - ${enabled ? 'Enabled' : 'Disabled'}`;
+                    appendPreviewItem({
+                        className: `preview-item slot ${enabled ? 'enabled' : 'disabled'}${selected ? ' selected' : ''}`,
+                        x: gridX + (line - 1) * pitchX,
+                        y: gridY + (row - 1) * pitchY,
+                        w: cellW,
+                        h: cellH,
+                        html: '',
+                        title,
+                        onClick: event => {
+                            event.stopPropagation();
+                            selectAreaSlot(area, key, Boolean(event.ctrlKey || event.metaKey));
+                            render(false);
+                        },
+                        onContextMenu: event => {
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            const selectedKeys = getSelectedSlotKeys(area);
+                            if (!selectedKeys.includes(key) || selectedKeys.length === 0) {
+                                selectAreaSlot(area, key, false);
+                                render(false);
+                            }
+
+                            openSlotMenu(area, {
+                                x: event.clientX,
+                                y: event.clientY
+                            }, getSelectedSlotKeys(area));
+                        }
+                    }, fragment);
+                }
+            }
+
+            slotLayer.appendChild(fragment);
         }
 
         function renderAreaComposer(area, zone) {
             syncComposerZoomFromArea(area);
             previewScale = composerZoom;
+            clearLargeComposerContext();
             const states = ensureAreaSlotStates(area);
             const counts = countEnabledSlots(area);
+            const selectedSet = new Set(ensureAreaSelectedSlots(area));
             const cols = Math.max(1, Number(area.slotCols) || 1);
             const rows = Math.max(1, Number(area.slotRows) || 1);
+            const totalSlots = cols * rows;
             const shellX = 16;
             const shellY = 18;
             const compactMode = previewScale <= 0.5;
@@ -1835,6 +2047,7 @@
             const headerGap = 4;
             const lineLabelY = gridY - cellH - headerGap;
             const rowLabelX = gridX - rowHeaderW - headerGap;
+            const useVirtualSlots = totalSlots > 1000;
 
             setPreviewCanvasSize(shellX + shellW + 28, shellY + shellH + 28);
 
@@ -1848,8 +2061,13 @@
             });
             for (let line = 1; line <= cols; line++) {
                 const label = compactMode ? String(line) : String(line).padStart(3, '0');
-                const lineKeys = getAreaLineSlotKeys(area, line);
-                const lineSelected = lineKeys.length > 0 && lineKeys.every(key => isSlotSelected(area, key));
+                let lineSelected = true;
+                for (let row = 1; row <= rows; row++) {
+                    if (!selectedSet.has(getAreaSlotKey(line, row))) {
+                        lineSelected = false;
+                        break;
+                    }
+                }
                 appendPreviewItem({
                     className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${lineSelected ? ' selected' : ''}`,
                     x: gridX + (line - 1) * (cellW + gap),
@@ -1882,8 +2100,13 @@
 
             for (let row = 1; row <= rows; row++) {
                 const label = compactMode ? String(row) : String(row).padStart(3, '0');
-                const rowKeys = getAreaRowSlotKeys(area, row);
-                const rowSelected = rowKeys.length > 0 && rowKeys.every(key => isSlotSelected(area, key));
+                let rowSelected = true;
+                for (let line = 1; line <= cols; line++) {
+                    if (!selectedSet.has(getAreaSlotKey(line, row))) {
+                        rowSelected = false;
+                        break;
+                    }
+                }
                 appendPreviewItem({
                     className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${rowSelected ? ' selected' : ''}`,
                     x: rowLabelX,
@@ -1914,41 +2137,61 @@
                 });
             }
 
-            for (let line = 1; line <= cols; line++) {
-                for (let row = 1; row <= rows; row++) {
-                    const key = getAreaSlotKey(line, row);
-                    const enabled = states[key] !== false;
-                    const selected = isSlotSelected(area, key);
-                    const title = `Line ${String(line).padStart(3, '0')} / Row ${String(row).padStart(3, '0')} - ${enabled ? 'Enabled' : 'Disabled'}`;
-                    appendPreviewItem({
-                        className: `preview-item slot ${enabled ? 'enabled' : 'disabled'}${selected ? ' selected' : ''}`,
-                        x: gridX + (line - 1) * (cellW + gap),
-                        y: gridY + (row - 1) * (cellH + gap),
-                        w: cellW,
-                        h: cellH,
-                        html: '',
-                        title,
-                        onClick: event => {
-                            event.stopPropagation();
-                            selectAreaSlot(area, key, Boolean(event.ctrlKey || event.metaKey));
-                            render(false);
-                        },
-                        onContextMenu: event => {
-                            event.preventDefault();
-                            event.stopPropagation();
-
-                            const selected = getSelectedSlotKeys(area);
-                            if (!selected.includes(key) || selected.length === 0) {
-                                selectAreaSlot(area, key, false);
+            if (useVirtualSlots) {
+                const slotLayer = document.createElement('div');
+                slotLayer.className = 'slot-layer';
+                previewEl.appendChild(slotLayer);
+                activeLargeComposer = {
+                    area,
+                    states,
+                    cols,
+                    rows,
+                    gridX,
+                    gridY,
+                    cellW,
+                    cellH,
+                    gap,
+                    compactMode,
+                    slotLayer
+                };
+                renderVisibleLargeComposerSlots();
+            } else {
+                for (let line = 1; line <= cols; line++) {
+                    for (let row = 1; row <= rows; row++) {
+                        const key = getAreaSlotKey(line, row);
+                        const enabled = states[key] !== false;
+                        const selected = selectedSet.has(key);
+                        const title = `Line ${String(line).padStart(3, '0')} / Row ${String(row).padStart(3, '0')} - ${enabled ? 'Enabled' : 'Disabled'}`;
+                        appendPreviewItem({
+                            className: `preview-item slot ${enabled ? 'enabled' : 'disabled'}${selected ? ' selected' : ''}`,
+                            x: gridX + (line - 1) * (cellW + gap),
+                            y: gridY + (row - 1) * (cellH + gap),
+                            w: cellW,
+                            h: cellH,
+                            html: '',
+                            title,
+                            onClick: event => {
+                                event.stopPropagation();
+                                selectAreaSlot(area, key, Boolean(event.ctrlKey || event.metaKey));
                                 render(false);
-                            }
+                            },
+                            onContextMenu: event => {
+                                event.preventDefault();
+                                event.stopPropagation();
 
-                            openSlotMenu(area, {
-                                x: event.clientX,
-                                y: event.clientY
-                            }, getSelectedSlotKeys(area));
-                        }
-                    });
+                                const selected = getSelectedSlotKeys(area);
+                                if (!selected.includes(key) || selected.length === 0) {
+                                    selectAreaSlot(area, key, false);
+                                    render(false);
+                                }
+
+                                openSlotMenu(area, {
+                                    x: event.clientX,
+                                    y: event.clientY
+                                }, getSelectedSlotKeys(area));
+                            }
+                        });
+                    }
                 }
             }
 
@@ -1968,7 +2211,7 @@
 
         function renderZonePreview(zone) {
             previewScale = 1;
-            setPreviewCanvasSize(1180, 760);
+            setPreviewCanvasSize(1180, 760, 1180, 760);
             updateZoomControls(false);
             const areaCount = zone.areas.length;
             appendPreviewItem({
@@ -2031,7 +2274,7 @@
 
         function renderYardOverview() {
             previewScale = 1;
-            setPreviewCanvasSize(1180, 760);
+            setPreviewCanvasSize(1180, 760, 1180, 760);
             updateZoomControls(false);
             const zoneCount = state.yard.zones.length;
             const areaCount = countAreas();
@@ -2095,6 +2338,7 @@
 
         function renderPreview() {
             closeSlotMenu();
+            clearLargeComposerContext();
             const zone = getSelectedZone();
             const area = getSelectedArea();
 
@@ -2214,15 +2458,32 @@
             }, null, 2);
         }
 
+        function scheduleJsonRender() {
+            if (jsonRenderFrame) return;
+            jsonRenderFrame = window.requestAnimationFrame(() => {
+                jsonRenderFrame = 0;
+                renderJson();
+            });
+        }
+
+        function flushJsonRender() {
+            if (jsonRenderFrame) {
+                window.cancelAnimationFrame(jsonRenderFrame);
+                jsonRenderFrame = 0;
+            }
+            renderJson();
+        }
+
         function render() {
             renderTree();
             renderPreview();
             syncForm();
-            renderJson();
+            scheduleJsonRender();
             addAreaBtn.disabled = state.yard.zones.length === 0;
         }
 
         function saveJson() {
+            flushJsonRender();
             const blob = new Blob([jsonPreview.value], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
