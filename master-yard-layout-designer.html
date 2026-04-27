@@ -293,6 +293,24 @@
             font-size: 12px;
         }
 
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .zoom-controls .btn {
+            height: 30px;
+            padding: 0 10px;
+            font-size: 12px;
+        }
+
+        .zoom-pill {
+            min-width: 72px;
+            justify-content: center;
+        }
+
         .pill {
             display: inline-flex;
             align-items: center;
@@ -580,6 +598,129 @@
             letter-spacing: 0.03em;
         }
 
+        .yard-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 10px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f7f6f2;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+        }
+
+        .yard-card-header,
+        .yard-zone-grid {
+            position: relative;
+            z-index: 1;
+        }
+
+        .yard-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .yard-card-kicker {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: rgba(76, 67, 53, 0.76);
+            margin-bottom: 4px;
+        }
+
+        .yard-card-title {
+            font-size: 20px;
+            line-height: 1;
+            font-weight: 900;
+            color: #2f2a21;
+        }
+
+        .yard-card-subtitle {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #6c665d;
+        }
+
+        .yard-card-pill {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 94px;
+            height: 28px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            font-size: 10px;
+            font-weight: 900;
+            color: #3d372a;
+            letter-spacing: 0.04em;
+            box-shadow: none;
+        }
+
+        .yard-zone-grid {
+            margin-top: 0;
+            flex: 1 1 auto;
+            min-height: 0;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: auto;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 10px;
+        }
+
+        .yard-zone-card {
+            position: relative;
+            width: 180px;
+            height: 78px;
+            flex: 0 0 auto;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: #f2f0ea;
+            overflow: hidden;
+        }
+
+        .yard-zone-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 5px;
+            background: #c5bfb1;
+        }
+
+        .yard-zone-card-inner {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            padding: 8px 10px 8px 14px;
+            display: grid;
+            gap: 2px;
+            align-content: center;
+        }
+
+        .yard-zone-card-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: #2f2a21;
+            line-height: 1.1;
+        }
+
+        .yard-zone-card-meta {
+            font-size: 9px;
+            font-weight: 700;
+            color: #6c665d;
+            letter-spacing: 0.03em;
+        }
+
         .preview-item.slot.enabled {
             background: linear-gradient(180deg, #eaf4e5, #dbe9d4);
             color: #1e3b1f;
@@ -765,6 +906,11 @@
                         <button class="btn" id="enableAllBtn">Enable All</button>
                         <button class="btn" id="disableAllBtn">Disable All</button>
                         <button class="btn" id="invertBtn">Invert</button>
+                    </div>
+                    <div class="zoom-controls">
+                        <button class="btn" id="zoomOutBtn">-</button>
+                        <span class="pill zoom-pill" id="zoomValuePill">100%</span>
+                        <button class="btn" id="zoomInBtn">+</button>
                     </div>
                     <div class="meta">
                         <span class="pill" id="zoneCountPill">0 Zone</span>
@@ -961,6 +1107,9 @@
         const areaCountPill = document.getElementById('areaCountPill');
         const templatePill = document.getElementById('templatePill');
         const slotStatePill = document.getElementById('slotStatePill');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const zoomValuePill = document.getElementById('zoomValuePill');
+        const zoomInBtn = document.getElementById('zoomInBtn');
         const enableAllBtn = document.getElementById('enableAllBtn');
         const disableAllBtn = document.getElementById('disableAllBtn');
         const invertBtn = document.getElementById('invertBtn');
@@ -971,6 +1120,12 @@
         const selectedHint = document.getElementById('selectedHint');
         const zoneForm = document.getElementById('zoneForm');
         const areaForm = document.getElementById('areaForm');
+
+        let previewScale = 1;
+        let composerZoom = 1;
+        const ZOOM_MIN = 0.5;
+        const ZOOM_MAX = 1.5;
+        const ZOOM_STEP = 0.1;
 
         const fields = {
             yardName: document.getElementById('yardName'),
@@ -994,6 +1149,9 @@
         enableAllBtn.addEventListener('click', () => setAllSlots(true));
         disableAllBtn.addEventListener('click', () => setAllSlots(false));
         invertBtn.addEventListener('click', invertSlots);
+        zoomOutBtn.addEventListener('click', () => adjustComposerZoom(-ZOOM_STEP));
+        zoomInBtn.addEventListener('click', () => adjustComposerZoom(ZOOM_STEP));
+        zoomValuePill.addEventListener('click', () => setComposerZoom(1));
 
         Object.values(fields).forEach(field => {
             field.addEventListener('input', syncSelectedFromForm);
@@ -1013,6 +1171,29 @@
 
         function countAreas() {
             return state.yard.zones.reduce((sum, zone) => sum + zone.areas.length, 0);
+        }
+
+        function clampComposerZoom(value) {
+            return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, value));
+        }
+
+        function updateZoomControls(enabled) {
+            zoomOutBtn.disabled = !enabled;
+            zoomInBtn.disabled = !enabled;
+            zoomValuePill.style.cursor = enabled ? 'pointer' : 'default';
+            zoomValuePill.style.pointerEvents = enabled ? 'auto' : 'none';
+            zoomValuePill.title = enabled ? 'Click to reset zoom' : '';
+            zoomValuePill.textContent = `${Math.round(composerZoom * 100)}%`;
+        }
+
+        function setComposerZoom(value) {
+            composerZoom = clampComposerZoom(value);
+            updateZoomControls(true);
+            renderPreview();
+        }
+
+        function adjustComposerZoom(delta) {
+            setComposerZoom(composerZoom + delta);
         }
 
         function getAreaSlotKey(lineIndex, rowIndex) {
@@ -1258,10 +1439,10 @@
         function appendPreviewItem(item) {
             const div = document.createElement('div');
             div.className = item.className;
-            div.style.left = `${item.x}px`;
-            div.style.top = `${item.y}px`;
-            div.style.width = `${item.w}px`;
-            div.style.height = `${item.h}px`;
+            div.style.left = `${Math.round(item.x * previewScale)}px`;
+            div.style.top = `${Math.round(item.y * previewScale)}px`;
+            div.style.width = `${Math.round(item.w * previewScale)}px`;
+            div.style.height = `${Math.round(item.h * previewScale)}px`;
 
             if (item.html !== undefined) {
                 div.innerHTML = item.html;
@@ -1282,11 +1463,14 @@
         }
 
         function setPreviewCanvasSize(width, height) {
-            previewEl.style.width = `${Math.max(1180, Math.ceil(width))}px`;
-            previewEl.style.height = `${Math.max(760, Math.ceil(height))}px`;
+            const scaledWidth = Math.ceil(width * previewScale);
+            const scaledHeight = Math.ceil(height * previewScale);
+            previewEl.style.width = `${previewScale < 1 ? scaledWidth : Math.max(1180, scaledWidth)}px`;
+            previewEl.style.height = `${previewScale < 1 ? scaledHeight : Math.max(760, scaledHeight)}px`;
         }
 
         function renderAreaComposer(area, zone) {
+            previewScale = composerZoom;
             const states = ensureAreaSlotStates(area);
             const counts = countEnabledSlots(area);
             const cols = Math.max(1, Number(area.slotCols) || 1);
@@ -1369,13 +1553,16 @@
             areaCountPill.textContent = `${countAreas()} Area`;
             templatePill.textContent = `${cols} Line x ${rows} Row`;
             slotStatePill.textContent = `${counts.enabled} Enabled / ${counts.total} Slots`;
+            updateZoomControls(true);
             enableAllBtn.disabled = false;
             disableAllBtn.disabled = false;
             invertBtn.disabled = false;
         }
 
         function renderZonePreview(zone) {
+            previewScale = 1;
             setPreviewCanvasSize(1180, 760);
+            updateZoomControls(false);
             const areaCount = zone.areas.length;
             appendPreviewItem({
                 className: 'preview-item boundary',
@@ -1436,34 +1623,63 @@
         }
 
         function renderYardOverview() {
+            previewScale = 1;
             setPreviewCanvasSize(1180, 760);
+            updateZoomControls(false);
+            const zoneCount = state.yard.zones.length;
+            const areaCount = countAreas();
             appendPreviewItem({
                 className: 'preview-item boundary',
                 x: 8,
                 y: 8,
                 w: 760,
                 h: 480,
-                label: 'Yard Boundary'
+                label: ''
             });
 
-            for (let i = 0; i < state.yard.zones.length; i++) {
-                const z = state.yard.zones[i];
-                appendPreviewItem({
-                    className: 'preview-item zone',
-                    x: 56 + (i % 2) * 230,
-                    y: 56 + Math.floor(i / 2) * 140,
-                    w: 200,
-                    h: 90,
-                    label: z.name
-                });
+            appendPreviewItem({
+                className: 'preview-item zone',
+                x: 36,
+                y: 36,
+                w: 560,
+                h: 300,
+                html: `
+                    <div class="yard-card">
+                        <div class="yard-card-header">
+                            <div>
+                                <div class="yard-card-kicker">Yard Preview</div>
+                                <div class="yard-card-title">${state.yard.name}</div>
+                                <div class="yard-card-subtitle">${zoneCount} zone${zoneCount === 1 ? '' : 's'} inside this yard</div>
+                            </div>
+                            <div class="yard-card-pill">${zoneCount} Zone${zoneCount === 1 ? '' : 's'}</div>
+                        </div>
+                        <div class="yard-zone-grid"></div>
+                    </div>
+                `
+            });
+
+            const yardCard = previewEl.querySelector('.yard-card');
+            const zoneGrid = yardCard ? yardCard.querySelector('.yard-zone-grid') : null;
+            if (zoneGrid) {
+                for (const zone of state.yard.zones) {
+                    const zoneCard = document.createElement('div');
+                    zoneCard.className = 'yard-zone-card';
+                    zoneCard.innerHTML = `
+                        <div class="yard-zone-card-inner">
+                            <div class="yard-zone-card-title">${zone.name}</div>
+                            <div class="yard-zone-card-meta">${zone.code} - ${zone.areas.length} area${zone.areas.length === 1 ? '' : 's'}</div>
+                        </div>
+                    `;
+                    zoneGrid.appendChild(zoneCard);
+                }
             }
 
             previewLabel.textContent = `${state.yard.code} - ${state.yard.name}`;
             activeTitle.textContent = state.yard.name;
-            activeSubtitle.textContent = 'Master yard selected. Tambahkan zone lalu pilih area untuk masuk ke composer mode.';
-            zoneCountPill.textContent = `${state.yard.zones.length} Zone`;
-            areaCountPill.textContent = `${countAreas()} Area`;
-            templatePill.textContent = `${state.yard.zones.length} Zone`;
+            activeSubtitle.textContent = `Master yard selected. Ada ${zoneCount} zone dan ${areaCount} area di dalamnya.`;
+            zoneCountPill.textContent = `${zoneCount} Zone`;
+            areaCountPill.textContent = `${areaCount} Area`;
+            templatePill.textContent = `${zoneCount} Zone`;
             slotStatePill.textContent = 'Composer off';
             enableAllBtn.disabled = true;
             disableAllBtn.disabled = true;
