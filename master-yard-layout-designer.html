@@ -375,6 +375,10 @@
             pointer-events: none;
         }
 
+        .preview.heavy-composer .preview-grid {
+            display: none;
+        }
+
         .preview-item {
             position: absolute;
             border: 1px solid #9fb0c6;
@@ -1215,6 +1219,7 @@
         let largeComposerRefreshPending = false;
         let jsonRenderFrame = 0;
         const areaSlotStats = new WeakMap();
+        const areaSelectionStats = new WeakMap();
         const AXIS_VIRTUAL_THRESHOLD = 500;
 
         previewEl.addEventListener('click', event => {
@@ -1390,7 +1395,73 @@
                 total: cols * rows,
                 enabled: enabledCount
             });
+            areaSelectionStats.delete(area);
             return next;
+        }
+
+        function rebuildAreaSelectionStats(area, keys = null) {
+            if (!area) return { total: 0, lineCounts: Object.create(null), rowCounts: Object.create(null) };
+            const slotStates = ensureAreaSlotStates(area);
+            const selectedKeys = Array.isArray(keys) ? keys : (Array.isArray(area.selectedSlotKeys) ? area.selectedSlotKeys : []);
+            const validKeys = new Set(Object.keys(slotStates));
+            const lineCounts = Object.create(null);
+            const rowCounts = Object.create(null);
+            const unique = [];
+            const seen = new Set();
+
+            for (const key of selectedKeys) {
+                if (!validKeys.has(key) || seen.has(key)) continue;
+                seen.add(key);
+                unique.push(key);
+                const dash = key.indexOf('-');
+                if (dash > 0) {
+                    const line = Number(key.slice(0, dash));
+                    const row = Number(key.slice(dash + 1));
+                    if (Number.isFinite(line)) {
+                        lineCounts[line] = (lineCounts[line] || 0) + 1;
+                    }
+                    if (Number.isFinite(row)) {
+                        rowCounts[row] = (rowCounts[row] || 0) + 1;
+                    }
+                }
+            }
+
+            area.selectedSlotKeys = unique;
+            area._selectedSlotSignature = area._slotStateSignature || '';
+            const version = area._selectionVersion || 0;
+            const stats = {
+                total: unique.length,
+                lineCounts,
+                rowCounts,
+                cols: Math.max(1, Number(area.slotCols) || 0),
+                rows: Math.max(1, Number(area.slotRows) || 0),
+                version
+            };
+            areaSelectionStats.set(area, stats);
+            return stats;
+        }
+
+        function markAreaSelectionChanged(area) {
+            if (!area) return;
+            area._selectionVersion = (area._selectionVersion || 0) + 1;
+            areaSelectionStats.delete(area);
+        }
+
+        function getAreaSelectionStats(area) {
+            if (!area) {
+                return { total: 0, lineCounts: Object.create(null), rowCounts: Object.create(null), cols: 0, rows: 0 };
+            }
+
+            const cached = areaSelectionStats.get(area);
+            if (
+                cached &&
+                cached.version === (area._selectionVersion || 0) &&
+                area._selectedSlotSignature === (area._slotStateSignature || '')
+            ) {
+                return cached;
+            }
+
+            return rebuildAreaSelectionStats(area, area.selectedSlotKeys);
         }
 
         function getAreaSlotStats(area) {
@@ -1438,17 +1509,8 @@
         }
 
         function ensureAreaSelectedSlots(area) {
-            const previous = Array.isArray(area.selectedSlotKeys) ? area.selectedSlotKeys : [];
-            const slotStates = ensureAreaSlotStates(area);
-            const signature = area._slotStateSignature || '';
-            if (area._selectedSlotSignature === signature) {
-                return previous;
-            }
-            const validKeys = new Set(Object.keys(slotStates));
-            const next = previous.filter(key => validKeys.has(key));
-            area.selectedSlotKeys = next;
-            area._selectedSlotSignature = signature;
-            return next;
+            getAreaSelectionStats(area);
+            return area?.selectedSlotKeys || [];
         }
 
         function renderPreviewLegend() {
@@ -1487,24 +1549,14 @@
         }
 
         function setAreaSelectedSlots(area, keys) {
-            const slotStates = ensureAreaSlotStates(area);
-            const validKeys = new Set(Object.keys(slotStates));
-            const seen = new Set();
-            const unique = [];
-            for (const key of keys) {
-                if (validKeys.has(key) && !seen.has(key)) {
-                    seen.add(key);
-                    unique.push(key);
-                }
-            }
-            area.selectedSlotKeys = unique;
-            area._selectedSlotSignature = area._slotStateSignature || '';
-            return unique;
+            markAreaSelectionChanged(area);
+            rebuildAreaSelectionStats(area, keys);
+            return area?.selectedSlotKeys || [];
         }
 
         function clearAreaSelectedSlots(area) {
-            area.selectedSlotKeys = [];
-            area._selectedSlotSignature = area?._slotStateSignature || '';
+            markAreaSelectionChanged(area);
+            rebuildAreaSelectionStats(area, []);
         }
 
         function selectAreaSlot(area, key, additive = false) {
@@ -1995,7 +2047,7 @@
 
             const { area, rows, cols, gridX, gridY, cellW, cellH, gap, compactMode, lineLayer } = context;
             lineLayer.innerHTML = '';
-            const selectedSet = new Set(ensureAreaSelectedSlots(area));
+            const selectionStats = getAreaSelectionStats(area);
             const fragment = document.createDocumentFragment();
 
             const scale = previewScale || 1;
@@ -2012,13 +2064,7 @@
             const lineLabelY = gridY - cellH - 4;
             for (let line = firstLine; line <= lastLine; line++) {
                 const label = compactMode ? String(line) : String(line).padStart(3, '0');
-                let lineSelected = true;
-                for (let row = 1; row <= rows; row++) {
-                    if (!selectedSet.has(getAreaSlotKey(line, row))) {
-                        lineSelected = false;
-                        break;
-                    }
-                }
+                const lineSelected = (selectionStats.lineCounts[line] || 0) === rows;
                 appendPreviewItem({
                     className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${lineSelected ? ' selected' : ''}`,
                     x: gridX + (line - 1) * pitchX,
@@ -2058,7 +2104,7 @@
 
             const { area, rows, cols, gridX, gridY, cellH, gap, rowHeaderW, compactMode, rowLayer } = context;
             rowLayer.innerHTML = '';
-            const selectedSet = new Set(ensureAreaSelectedSlots(area));
+            const selectionStats = getAreaSelectionStats(area);
             const fragment = document.createDocumentFragment();
 
             const scale = previewScale || 1;
@@ -2075,13 +2121,7 @@
             const rowLabelX = gridX - rowHeaderW - 4;
             for (let row = firstRow; row <= lastRow; row++) {
                 const label = compactMode ? String(row) : String(row).padStart(3, '0');
-                let rowSelected = true;
-                for (let line = 1; line <= cols; line++) {
-                    if (!selectedSet.has(getAreaSlotKey(line, row))) {
-                        rowSelected = false;
-                        break;
-                    }
-                }
+                const rowSelected = (selectionStats.rowCounts[row] || 0) === cols;
                 appendPreviewItem({
                     className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${rowSelected ? ' selected' : ''}`,
                     x: rowLabelX,
@@ -2191,6 +2231,7 @@
             syncPreviewViewportLimit();
             const states = ensureAreaSlotStates(area);
             const counts = countEnabledSlots(area);
+            const selectionStats = getAreaSelectionStats(area);
             const selectedSet = new Set(ensureAreaSelectedSlots(area));
             const cols = Math.max(1, Number(area.slotCols) || 1);
             const rows = Math.max(1, Number(area.slotRows) || 1);
@@ -2216,6 +2257,7 @@
             const useVirtualSlots = totalSlots > 1000;
             const virtualLineLabels = cols > AXIS_VIRTUAL_THRESHOLD;
             const virtualRowLabels = rows > AXIS_VIRTUAL_THRESHOLD;
+            previewEl.classList.toggle('heavy-composer', totalSlots > 100000);
 
             setPreviewCanvasSize(shellX + shellW + 28, shellY + shellH + 28);
 
@@ -2230,13 +2272,7 @@
             if (!virtualLineLabels) {
                 for (let line = 1; line <= cols; line++) {
                     const label = compactMode ? String(line) : String(line).padStart(3, '0');
-                    let lineSelected = true;
-                    for (let row = 1; row <= rows; row++) {
-                        if (!selectedSet.has(getAreaSlotKey(line, row))) {
-                            lineSelected = false;
-                            break;
-                        }
-                    }
+                    const lineSelected = (selectionStats.lineCounts[line] || 0) === rows;
                     appendPreviewItem({
                         className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${lineSelected ? ' selected' : ''}`,
                         x: gridX + (line - 1) * (cellW + gap),
@@ -2271,13 +2307,7 @@
             if (!virtualRowLabels) {
                 for (let row = 1; row <= rows; row++) {
                     const label = compactMode ? String(row) : String(row).padStart(3, '0');
-                    let rowSelected = true;
-                    for (let line = 1; line <= cols; line++) {
-                        if (!selectedSet.has(getAreaSlotKey(line, row))) {
-                            rowSelected = false;
-                            break;
-                        }
-                    }
+                    const rowSelected = (selectionStats.rowCounts[row] || 0) === cols;
                     appendPreviewItem({
                         className: `preview-item axis-label clickable${compactMode ? ' compact' : ''}${rowSelected ? ' selected' : ''}`,
                         x: rowLabelX,
@@ -2404,6 +2434,7 @@
 
         function renderZonePreview(zone) {
             previewScale = 1;
+            previewEl.classList.remove('heavy-composer');
             syncPreviewViewportLimit();
             setPreviewCanvasSize(1180, 760, 1180, 760);
             updateZoomControls(false);
@@ -2468,6 +2499,7 @@
 
         function renderYardOverview() {
             previewScale = 1;
+            previewEl.classList.remove('heavy-composer');
             syncPreviewViewportLimit();
             setPreviewCanvasSize(1180, 760, 1180, 760);
             updateZoomControls(false);
