@@ -116,8 +116,10 @@
         }
 
         .workspace {
+            --structure-panel-width: clamp(240px, 22vw, 300px);
+            --inspector-panel-width: clamp(240px, 22vw, 320px);
             display: grid;
-            grid-template-columns: clamp(240px, 22vw, 300px) minmax(0, 1fr) clamp(240px, 22vw, 320px);
+            grid-template-columns: var(--structure-panel-width) minmax(0, 1fr) var(--inspector-panel-width);
             gap: 14px;
             padding: 14px;
             min-height: 0;
@@ -126,6 +128,8 @@
         }
 
         .panel {
+            display: flex;
+            flex-direction: column;
             background: rgba(255, 255, 255, 0.98);
             border: 1px solid #d9e3f0;
             border-radius: 16px;
@@ -134,12 +138,39 @@
             min-height: 0;
             min-width: 0;
             height: 100%;
+            transition: min-width 0.2s ease, width 0.2s ease, max-width 0.2s ease;
+        }
+
+        .panel-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-body > :first-child {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        .tree {
+            overflow: auto;
         }
 
         .panel-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
             padding: 14px 16px 10px;
             border-bottom: 1px solid #e3ebf6;
             background: #ffffff;
+        }
+
+        .panel-head-copy {
+            min-width: 0;
+            display: grid;
+            gap: 4px;
         }
 
         .panel-title {
@@ -154,6 +185,86 @@
             color: var(--muted);
             font-size: 12px;
             line-height: 1.45;
+        }
+
+        .panel-toggle {
+            flex: 0 0 auto;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border-radius: 8px;
+            border: 1px solid #cdd8ea;
+            background: linear-gradient(180deg, #ffffff, #f4f8fe);
+            color: var(--accent);
+            cursor: pointer;
+            display: inline-grid;
+            place-items: center;
+        }
+
+        .panel-toggle:hover {
+            border-color: #9db1d2;
+            background: linear-gradient(180deg, #ffffff, #edf4fd);
+        }
+
+        .panel-toggle::before {
+            content: "";
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        .panel-toggle[data-dir="left"]::before {
+            border-right: 8px solid currentColor;
+        }
+
+        .panel-toggle[data-dir="right"]::before {
+            border-left: 8px solid currentColor;
+        }
+
+        .panel.is-collapsed {
+            min-width: 72px;
+            width: 72px;
+        }
+
+        .panel.is-collapsed .panel-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100%;
+            padding: 10px 8px 8px;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .panel.is-collapsed .panel-head-copy {
+            position: static;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            pointer-events: none;
+            width: 100%;
+        }
+
+        .panel.is-collapsed .panel-title {
+            margin: 0;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            letter-spacing: 1.2px;
+            line-height: 1;
+        }
+
+        .panel.is-collapsed .panel-subtitle,
+        .panel.is-collapsed .panel-body,
+        .panel.is-collapsed .footer-note {
+            display: none;
+        }
+
+        .panel.is-collapsed .panel-toggle {
+            width: 30px;
+            margin: 0;
         }
 
         .tree {
@@ -1037,12 +1148,17 @@
 
         <div class="workspace-shell">
             <div class="workspace">
-                <aside class="panel">
+                <aside class="panel" data-panel="structure">
                     <div class="panel-head">
-                        <div class="panel-title">Structure</div>
-                        <div class="panel-subtitle">Susun zona, lalu definisikan area di tiap zona.</div>
+                        <div class="panel-head-copy">
+                            <div class="panel-title">Structure</div>
+                            <div class="panel-subtitle">Susun zona, lalu definisikan area di tiap zona.</div>
+                        </div>
+                        <button class="panel-toggle" id="structureCollapseBtn" type="button" aria-expanded="true" aria-controls="structurePanelBody" aria-label="Hide Structure panel" title="Hide Structure panel" data-dir="left"></button>
                     </div>
-                    <div class="tree" id="tree"></div>
+                    <div class="panel-body" id="structurePanelBody">
+                        <div class="tree" id="tree"></div>
+                    </div>
                 </aside>
 
                 <main class="panel stage">
@@ -1079,83 +1195,88 @@
                     <div class="preview-legend" id="previewLegend"></div>
                 </main>
 
-                <aside class="panel inspector">
+                <aside class="panel inspector" data-panel="inspector">
                     <div class="panel-head">
-                        <div class="panel-title">Inspector</div>
-                        <div class="panel-subtitle">Edit master yard, zone, dan area sesuai atributnya masing-masing.</div>
-                    </div>
-                    <div class="inspector-body">
-                        <div class="section">
-                            <div class="section-title">Master Yard</div>
-                            <div class="grid">
-                                <div class="row-2">
-                                    <div class="field">
-                                        <label for="yardName">Yard Name</label>
-                                        <input id="yardName" type="text">
-                                    </div>
-                                    <div class="field">
-                                        <label for="yardCode">Yard Code</label>
-                                        <input id="yardCode" type="text">
-                                    </div>
-                                </div>
-                                <div class="field">
-                                    <label for="yardDesc">Description</label>
-                                    <textarea id="yardDesc"></textarea>
-                                </div>
-                            </div>
+                        <div class="panel-head-copy">
+                            <div class="panel-title">Inspector</div>
+                            <div class="panel-subtitle">Edit master yard, zone, dan area sesuai atributnya masing-masing.</div>
                         </div>
-
-                        <div class="section">
-                            <div class="section-title">Selected Node</div>
-                            <div class="grid" id="emptyState">
-                                <div class="tiny">Pilih zone atau area di struktur untuk mengedit properti.</div>
-                            </div>
-                            <div class="grid" id="formState" style="display:none;">
-                                <div class="tiny" id="selectedHint"></div>
-                                <div id="zoneForm" class="grid hidden">
-                                    <div class="field">
-                                        <label for="zoneName">Zone Name</label>
-                                        <input id="zoneName" type="text">
-                                    </div>
-                                    <div class="field">
-                                        <label for="zoneCode">Zone Code</label>
-                                        <input id="zoneCode" type="text">
-                                    </div>
-                                    <div class="field">
-                                        <label for="zoneNote">Notes</label>
-                                        <textarea id="zoneNote"></textarea>
-                                    </div>
-                                </div>
-                                <div id="areaForm" class="grid hidden">
-                                    <div class="field">
-                                        <label for="areaName">Area Name</label>
-                                        <input id="areaName" type="text">
-                                    </div>
-                                    <div class="field">
-                                        <label for="areaCode">Area Code</label>
-                                        <input id="areaCode" type="text">
-                                    </div>
+                        <button class="panel-toggle" id="inspectorCollapseBtn" type="button" aria-expanded="true" aria-controls="inspectorPanelBody" aria-label="Hide Inspector panel" title="Hide Inspector panel" data-dir="right"></button>
+                    </div>
+                    <div class="panel-body" id="inspectorPanelBody">
+                        <div class="inspector-body">
+                            <div class="section">
+                                <div class="section-title">Master Yard</div>
+                                <div class="grid">
                                     <div class="row-2">
                                         <div class="field">
-                                            <label for="slotCols">Line Count</label>
-                                            <input id="slotCols" type="number" min="1">
+                                            <label for="yardName">Yard Name</label>
+                                            <input id="yardName" type="text">
                                         </div>
                                         <div class="field">
-                                            <label for="slotRows">Row Count</label>
-                                            <input id="slotRows" type="number" min="1">
+                                            <label for="yardCode">Yard Code</label>
+                                            <input id="yardCode" type="text">
                                         </div>
                                     </div>
                                     <div class="field">
-                                        <label for="areaNote">Notes</label>
-                                        <textarea id="areaNote"></textarea>
+                                        <label for="yardDesc">Description</label>
+                                        <textarea id="yardDesc"></textarea>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="section">
-                            <div class="section-title">JSON Preview</div>
-                            <textarea id="jsonPreview" class="json-box" readonly></textarea>
+                            <div class="section">
+                                <div class="section-title">Selected Node</div>
+                                <div class="grid" id="emptyState">
+                                    <div class="tiny">Pilih zone atau area di struktur untuk mengedit properti.</div>
+                                </div>
+                                <div class="grid" id="formState" style="display:none;">
+                                    <div class="tiny" id="selectedHint"></div>
+                                    <div id="zoneForm" class="grid hidden">
+                                        <div class="field">
+                                            <label for="zoneName">Zone Name</label>
+                                            <input id="zoneName" type="text">
+                                        </div>
+                                        <div class="field">
+                                            <label for="zoneCode">Zone Code</label>
+                                            <input id="zoneCode" type="text">
+                                        </div>
+                                        <div class="field">
+                                            <label for="zoneNote">Notes</label>
+                                            <textarea id="zoneNote"></textarea>
+                                        </div>
+                                    </div>
+                                    <div id="areaForm" class="grid hidden">
+                                        <div class="field">
+                                            <label for="areaName">Area Name</label>
+                                            <input id="areaName" type="text">
+                                        </div>
+                                        <div class="field">
+                                            <label for="areaCode">Area Code</label>
+                                            <input id="areaCode" type="text">
+                                        </div>
+                                        <div class="row-2">
+                                            <div class="field">
+                                                <label for="slotCols">Line Count</label>
+                                                <input id="slotCols" type="number" min="1">
+                                            </div>
+                                            <div class="field">
+                                                <label for="slotRows">Row Count</label>
+                                                <input id="slotRows" type="number" min="1">
+                                            </div>
+                                        </div>
+                                        <div class="field">
+                                            <label for="areaNote">Notes</label>
+                                            <textarea id="areaNote"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <div class="section-title">JSON Preview</div>
+                                <textarea id="jsonPreview" class="json-box" readonly></textarea>
+                            </div>
                         </div>
                     </div>
                     <div class="footer-note">
@@ -1163,7 +1284,6 @@
                     </div>
                 </aside>
             </div>
-        </div>
         </div>
     </div>
 
@@ -1201,6 +1321,11 @@
         const disableAllBtn = document.getElementById('disableAllBtn');
         const invertBtn = document.getElementById('invertBtn');
         const addAreaBtn = document.getElementById('addAreaBtn');
+        const workspaceEl = document.querySelector('.workspace');
+        const structurePanel = document.querySelector('[data-panel="structure"]');
+        const inspectorPanel = document.querySelector('[data-panel="inspector"]');
+        const structureCollapseBtn = document.getElementById('structureCollapseBtn');
+        const inspectorCollapseBtn = document.getElementById('inspectorCollapseBtn');
         const jsonPreview = document.getElementById('jsonPreview');
         const fileInput = document.getElementById('fileInput');
         const emptyState = document.getElementById('emptyState');
@@ -1213,14 +1338,41 @@
         let composerZoom = 1;
         const ZOOM_MIN = 0.25;
         const ZOOM_MAX = 1.5;
-        const ZOOM_STEP = 0.1;
+        const ZOOM_STEP = 0.05;
         let slotMenuEl = null;
         let activeLargeComposer = null;
         let largeComposerRefreshPending = false;
         let jsonRenderFrame = 0;
+        let structureCollapsed = false;
+        let inspectorCollapsed = false;
         const areaSlotStats = new WeakMap();
         const areaSelectionStats = new WeakMap();
         const AXIS_VIRTUAL_THRESHOLD = 500;
+
+        function applyPanelLayout() {
+            workspaceEl.style.setProperty('--structure-panel-width', structureCollapsed ? '72px' : 'clamp(240px, 22vw, 300px)');
+            workspaceEl.style.setProperty('--inspector-panel-width', inspectorCollapsed ? '72px' : 'clamp(240px, 22vw, 320px)');
+            structurePanel.classList.toggle('is-collapsed', structureCollapsed);
+            inspectorPanel.classList.toggle('is-collapsed', inspectorCollapsed);
+            structureCollapseBtn.dataset.dir = structureCollapsed ? 'right' : 'left';
+            structureCollapseBtn.setAttribute('aria-expanded', String(!structureCollapsed));
+            structureCollapseBtn.setAttribute('aria-label', structureCollapsed ? 'Show Structure panel' : 'Hide Structure panel');
+            structureCollapseBtn.title = structureCollapsed ? 'Show Structure panel' : 'Hide Structure panel';
+            inspectorCollapseBtn.dataset.dir = inspectorCollapsed ? 'left' : 'right';
+            inspectorCollapseBtn.setAttribute('aria-expanded', String(!inspectorCollapsed));
+            inspectorCollapseBtn.setAttribute('aria-label', inspectorCollapsed ? 'Show Inspector panel' : 'Hide Inspector panel');
+            inspectorCollapseBtn.title = inspectorCollapsed ? 'Show Inspector panel' : 'Hide Inspector panel';
+        }
+
+        function toggleStructurePanel() {
+            structureCollapsed = !structureCollapsed;
+            applyPanelLayout();
+        }
+
+        function toggleInspectorPanel() {
+            inspectorCollapsed = !inspectorCollapsed;
+            applyPanelLayout();
+        }
 
         previewEl.addEventListener('click', event => {
             if (state.selected.type !== 'area') {
@@ -1265,6 +1417,8 @@
         document.getElementById('saveBtn').addEventListener('click', saveJson);
         document.getElementById('loadBtn').addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', loadJson);
+        structureCollapseBtn.addEventListener('click', toggleStructurePanel);
+        inspectorCollapseBtn.addEventListener('click', toggleInspectorPanel);
         enableAllBtn.addEventListener('click', () => setAllSlots(true));
         disableAllBtn.addEventListener('click', () => setAllSlots(false));
         invertBtn.addEventListener('click', invertSlots);
@@ -1316,6 +1470,10 @@
             return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, value));
         }
 
+        function snapComposerZoom(value) {
+            return Math.round(value / ZOOM_STEP) * ZOOM_STEP;
+        }
+
         function syncComposerZoomFromArea(area) {
             if (!area) {
                 composerZoom = 1;
@@ -1323,7 +1481,7 @@
                 return;
             }
 
-            composerZoom = clampComposerZoom(Number(area.zoom) || 1);
+            composerZoom = snapComposerZoom(clampComposerZoom(Number(area.zoom) || 1));
             area.zoom = composerZoom;
             updateZoomControls(true);
         }
@@ -1341,7 +1499,7 @@
         function setComposerZoom(value) {
             const area = getSelectedArea();
             if (!area) return;
-            composerZoom = clampComposerZoom(value);
+            composerZoom = snapComposerZoom(clampComposerZoom(value));
             area.zoom = composerZoom;
             updateZoomControls(true);
             renderPreview();
@@ -2750,6 +2908,7 @@
         }
 
         render();
+        applyPanelLayout();
     </script>
 </body>
 </html>
